@@ -33,7 +33,6 @@ spctl --assess --type execute "$APP"
 # Never overwrite an unrelated App or replace an executable while it is running.
 if [ -e "$DEST/Wand.app" ]; then
   [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$DEST/Wand.app/Contents/Info.plist")" = dev.wandapp.macos ] || fail 'An unrelated Wand.app already exists; nothing replaced.'
-  if pgrep -f "$DEST/Wand.app/Contents/MacOS/" >/dev/null; then fail 'Quit Wand before updating. No App or Core process was stopped.'; fi
   NEW_EXEC=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Contents/Info.plist")
   case "$NEW_EXEC" in ''|*/*|*..*) fail 'Invalid executable name.' ;; esac
   if cmp -s "$APP/Contents/MacOS/$NEW_EXEC" "$DEST/Wand.app/Contents/MacOS/$NEW_EXEC" && cmp -s "$APP/Contents/Info.plist" "$DEST/Wand.app/Contents/Info.plist" && cmp -s "$APP/Contents/_CodeSignature/CodeResources" "$DEST/Wand.app/Contents/_CodeSignature/CodeResources"; then
@@ -41,6 +40,7 @@ if [ -e "$DEST/Wand.app" ]; then
     open "$DEST/Wand.app"
     exit 0
   fi
+  if pgrep -f "$DEST/Wand.app/Contents/MacOS/" >/dev/null; then fail 'Quit Wand before updating. No App or Core process was stopped.'; fi
   BACKUP=$DEST/Wand.previous.$(date +%Y%m%d%H%M%S).app
   [ ! -e "$BACKUP" ] || fail 'A backup with this timestamp already exists; retry shortly.'
   mv "$DEST/Wand.app" "$BACKUP"
