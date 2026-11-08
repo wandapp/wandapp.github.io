@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { validateRelease, copyCommand } from "./release.js";
+import { validateRelease, copyCommand, appInstallCommand } from "./release.js";
 const source = JSON.parse(
   await readFile(new URL("./release.json", import.meta.url)),
 );
@@ -47,4 +47,19 @@ test("copy succeeds only after the clipboard accepts the exact text", async () =
       },
     }),
   );
+});
+
+test("client installer command is separate from Core and copied verbatim", async () => {
+  assert.equal(
+    appInstallCommand,
+    "curl -fsSL https://wandapp.github.io/install-app.sh | sh",
+  );
+  assert.notEqual(appInstallCommand, source.core.command);
+  let copied;
+  await copyCommand(appInstallCommand, {
+    writeText: async (value) => {
+      copied = value;
+    },
+  });
+  assert.equal(copied, appInstallCommand);
 });

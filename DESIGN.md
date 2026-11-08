@@ -105,3 +105,7 @@ The terminal connection preview is explicitly captioned as an illustration. Its 
 - Don’t add slogans, secondary badges or decorative marketing copy.
 - Don’t present the terminal illustration as a real application screenshot.
 - Don’t introduce decorative gradients or repetitive feature cards.
+
+### Client command disclosure
+
+The macOS download group owns the native `details.app-install` disclosure. It contains the optional `install-app.sh` command and its own live feedback region, enabled by macOS availability independently of Core. It reuses the command box, copy button, and shared copy handler; text-align is explicitly left aligned even when the narrow hero is centered. Opening it expands document flow rather than overlaying content.

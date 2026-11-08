@@ -12,3 +12,14 @@
 - 独立审阅要求删除页脚标语，已删除并重新截图。无私密数据、外部字体、第三方脚本或分析追踪。
 
 GitHub Pages workflow参照[官方自定义工作流](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)，构建只复制允许公开的静态文件到dist，安装器存在时一起复制；不会上传设计记录、Git数据或测试证据。
+
+## 客户端终端安装入口
+
+2026-11-08：通过。将“下载与更新”移到macOS下载按钮附近，加入`install-app.sh`命令、目标目录及不自动启动说明。复用同一复制事件处理器，各区域有就近的固定高度状态。
+
+- `npm run check`、4/4测试和静态构建通过。
+- 浏览器请求替身仅把macOS设为可用、Core保持不可用，客户端复制已启用，Core复制仍禁用。
+- 客户端命令原生剪贴板写入成功；拒绝路径选中完整准确的`install-app.sh`命令，提供手动复制提示。
+- 未发布时客户端按钮禁用；“下载与更新”可由键盘Enter展开。
+- 展开状态1440px/390px均无横向溢出，截图在`.impeccable/review/app-install-desktop.png`与`app-install-mobile.png`。
+- 未修改发布清单状态及任何安装器；实际脚本下载与执行由根分发任务验收。

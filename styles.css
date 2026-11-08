@@ -699,3 +699,11 @@ footer > a:hover {
     border: 1px solid var(--line);
   }
 }
+
+.app-install {
+  margin-top: 16px;
+  text-align: left;
+}
+.app-install .copy-status {
+  margin-top: 0;
+}

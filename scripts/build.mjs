@@ -4,6 +4,7 @@ const manifest = validateRelease(
   JSON.parse(await readFile("release.json", "utf8")),
 );
 if (manifest.core.available) await access("install.sh");
+if (manifest.macos.available) await access("install-app.sh");
 await rm("dist", { recursive: true, force: true });
 await mkdir("dist", { recursive: true });
 for (const file of [
@@ -15,11 +16,13 @@ for (const file of [
   "assets",
 ])
   await cp(file, `dist/${file}`, { recursive: true });
-try {
-  await access("install.sh");
-  await cp("install.sh", "dist/install.sh");
-} catch (error) {
-  if (error.code !== "ENOENT") throw error;
+for (const installer of ["install.sh", "install-app.sh"]) {
+  try {
+    await access(installer);
+    await cp(installer, `dist/${installer}`);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
 }
 await writeFile("dist/.nojekyll", "");
 console.log("Static site built to dist/");

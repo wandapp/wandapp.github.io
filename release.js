@@ -2,6 +2,8 @@ export const releasesURL =
   "https://github.com/wandapp/wandapp.github.io/releases";
 export const installCommand =
   "curl -fsSL https://wandapp.github.io/install.sh | sh";
+export const appInstallCommand =
+  "curl -fsSL https://wandapp.github.io/install-app.sh | sh";
 export const startCommand = "~/.local/bin/wand-core start";
 
 export function validateRelease(value) {

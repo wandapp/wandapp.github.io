@@ -52,6 +52,47 @@
               正在读取版本信息…
             </p>
           </div>
+          <details class="app-install">
+            <summary>下载与更新</summary>
+            <p>也可以在终端安装客户端：</p>
+            <div class="command-box">
+              <code id="app-install-command"
+                >curl -fsSL https://wandapp.github.io/install-app.sh | sh</code
+              >
+              <button
+                class="copy"
+                id="copy-app-install"
+                type="button"
+                aria-label="复制 macOS 客户端安装命令"
+                disabled
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="8" y="8" width="12" height="13" rx="2" />
+                  <path
+                    d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"
+                  /></svg
+                ><span>复制</span>
+              </button>
+            </div>
+            <p
+              class="copy-status"
+              id="app-copy-status"
+              role="status"
+              aria-live="polite"
+            >
+              客户端发布后可复制命令。
+            </p>
+            <p>
+              安装到
+              <code>~/Applications/Wand.app</code>，不会自动打开。客户端与 Core
+              分别更新。
+            </p>
+            <p>
+              <a href="https://github.com/wandapp/wandapp.github.io/releases"
+                >查看所有版本与校验文件 <span aria-hidden="true">↗</span></a
+              >
+            </p>
+          </details>
         </div>
         <figure class="preview">
           <div class="preview-window" aria-label="终端连接示意">
@@ -168,19 +209,6 @@
             <p>
               直接在客户端连接已有的电脑或服务器，无需在每台设备重复安装。远程
               Core 需可访问的地址；连接配置由你自己的 Core 管理。
-            </p>
-          </details>
-          <details>
-            <summary>下载与更新</summary>
-            <p>
-              客户端从 GitHub Releases 下载，Core
-              通过上方命令安装。两者分别更新；更新 Core
-              前请先结束需要保留的终端任务。
-            </p>
-            <p>
-              <a href="https://github.com/wandapp/wandapp.github.io/releases"
-                >查看所有版本与校验文件 <span aria-hidden="true">↗</span></a
-              >
             </p>
           </details>
         </div>

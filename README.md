@@ -30,3 +30,11 @@ GitHub Pages 使用 `.github/workflows/pages.yml`，从 `main` 构建发布。Pa
 根项目分发流程负责同步 `install.sh`。Core 可用时构建会检查安装器存在。未发布、读取失败、脚本禁用时不会给出虚假的下载成功状态：GitHub Releases 是始终可见的替代入口。
 
 本页终端是标明“连接示意”的虚构示例，没有使用私密会话截图。品牌 SVG 复制自项目 `frontend/src/brand-mark.svg`，保持同源轮廓。
+
+macOS 主下载区域的“下载与更新”还提供客户端命令：
+
+```sh
+curl -fsSL https://wandapp.github.io/install-app.sh | sh
+```
+
+客户端命令由 `macos.available` 单独控制，不受 Core 发布状态影响；安装到 `~/Applications/Wand.app`，不自动打开。根分发流程负责同步 `install-app.sh`，macOS 可用时构建要求该文件存在。两个安装脚本都纳入静态部署白名单。
