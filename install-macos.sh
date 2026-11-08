@@ -50,4 +50,4 @@ else
 fi
 open "$DEST/Wand.app"
 printf 'Installed and opened %s/Wand.app. Login startup and background services are registered by the App.\n' "$DEST"
-printf 'If macOS requests background-item approval, complete the system prompt in Wand.\n' 
+printf 'If macOS requests background-item approval, complete the system prompt in Wand.\n'
