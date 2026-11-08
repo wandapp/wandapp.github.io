@@ -13,6 +13,7 @@ for (const file of [
   "release.js",
   "release.json",
   "assets",
+  "ios",
 ])
   await cp(file, `dist/${file}`, { recursive: true });
 for (const installer of ["install.sh", "install-macos.sh", "install-linux.sh"]) {

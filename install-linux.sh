@@ -1,7 +1,7 @@
 #!/bin/sh
 # System installation; Scheduler and gateway retain independent lifecycles.
 set -eu
-VERSION=0.1.0
+VERSION=0.1.1
 RELEASE=https://github.com/wandapp/wandapp.github.io/releases/download/core-v$VERSION
 fail() { printf '%s\n' "$*" >&2; exit 1; }
 [ "$(uname -s)" = Linux ] || fail 'Linux is required.'
@@ -22,15 +22,6 @@ if [ "${1:-}" = --service-user ]; then USER_NAME=${2:?Missing service user}; fi
 case "$USER_NAME" in ''|root|*[!a-zA-Z0-9_-]*) fail 'A non-root service user is required.' ;; esac
 [ -d /run/systemd/system ] || fail 'This installer requires a booted systemd host.'
 for command in curl tar sha256sum systemctl getent runuser; do command -v "$command" >/dev/null || fail "Missing required command: $command"; done
-if ! id "$USER_NAME" >/dev/null 2>&1; then
-  [ "$USER_NAME" = wand ] || fail 'Requested service user does not exist.'
-  useradd --system --create-home --home-dir /var/lib/wand --shell /bin/bash wand
-fi
-[ "$(id -u "$USER_NAME")" != 0 ] || fail 'Service account must not have UID 0.'
-USER_HOME=$(getent passwd "$USER_NAME" | cut -d: -f6)
-USER_GROUP=$(id -gn "$USER_NAME")
-case "$USER_HOME" in /*) ;; *) fail 'Service home must be absolute.' ;; esac
-case "$USER_HOME" in *[!a-zA-Z0-9_./-]*) fail 'Service home contains unsupported systemd characters.' ;; esac
 # Prefix permits package validation in a disposable filesystem; production is /opt.
 ROOT=${WAND_LINUX_INSTALL_ROOT:-/opt/wand}
 UNITS=${WAND_SYSTEMD_UNIT_DIR:-/etc/systemd/system}
@@ -55,6 +46,15 @@ tar -xzf "$TEMP/$ASSET" -C "$TEMP" --no-same-owner
 BUNDLE=$TEMP/wand-core
 [ "$(cat "$BUNDLE/VERSION")" = "$VERSION" ] || fail 'Bundle version mismatch.'
 "$BUNDLE/bin/wand-scheduler" --check-runtime
+if ! id "$USER_NAME" >/dev/null 2>&1; then
+  [ "$USER_NAME" = wand ] || fail 'Requested service user does not exist.'
+  useradd --system --create-home --home-dir /var/lib/wand --shell /bin/bash wand
+fi
+[ "$(id -u "$USER_NAME")" != 0 ] || fail 'Service account must not have UID 0.'
+USER_HOME=$(getent passwd "$USER_NAME" | cut -d: -f6)
+USER_GROUP=$(id -gn "$USER_NAME")
+case "$USER_HOME" in /*) ;; *) fail 'Service home must be absolute.' ;; esac
+case "$USER_HOME" in *[!a-zA-Z0-9_./-]*) fail 'Service home contains unsupported systemd characters.' ;; esac
 DEST=$ROOT/versions/$VERSION-$ARCH
 if [ -e "$DEST" ]; then
   [ -f "$DEST/.archive-sha256" ] && [ "$(cat "$DEST/.archive-sha256")" = "$HASH" ] || fail 'Existing version content differs; nothing replaced.'
@@ -133,5 +133,20 @@ done
 systemctl is-active --quiet wand-scheduler.service
 systemctl is-active --quiet wand-server.service
 printf 'Wand is installed and enabled at boot for user %s.\n' "$USER_NAME"
-printf 'Open http://127.0.0.1:3210 on this server, or use an SSH tunnel for first-time setup.\n'
+# Initial setup runs against loopback on this host; SSH forwarding is unnecessary.
+setup_status=0
+"$DEST/wand-core" setup --check || setup_status=$?
+case "$setup_status" in
+  0) ;;
+  2)
+    if ( : </dev/tty ) 2>/dev/null; then
+      "$DEST/wand-core" setup </dev/tty
+    else
+      printf 'Services are running; account setup is still required.\n'
+      printf 'From an interactive SSH terminal run: %s/wand-core setup\n' "$DEST"
+    fi
+    ;;
+  *) fail 'Unable to check account setup; inspect the running gateway.' ;;
+esac
+printf 'Open this server’s LAN address on port 3210 in a browser.\n' 
 printf 'Existing running services are not restarted by updates. Installed version: %s.\n' "$VERSION"
