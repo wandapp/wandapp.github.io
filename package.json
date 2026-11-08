@@ -1,0 +1,11 @@
+{
+  "name": "wand-website",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "build": "node scripts/build.mjs",
+    "check": "node --check main.js && node --check release.js && node --check scripts/build.mjs"
+  }
+}

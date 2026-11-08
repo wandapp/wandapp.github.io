@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-08T13:46:46.310414+00:00",
+  "title": "Design System: Wand website",
+  "extensions": {
+    "colorMeta": {},
+    "shadows": [
+      {
+        "name": "terminal-preview",
+        "value": "0 18px 60px #17171918,0 2px 8px #1717190d",
+        "purpose": "Lift the connection illustration."
+      }
+    ],
+    "motion": [
+      {
+        "name": "primary-hover",
+        "value": "background .16s ease-out",
+        "purpose": "Primary action hover; removed for reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-desktop",
+        "value": "1000px"
+      },
+      {
+        "name": "single-column",
+        "value": "800px"
+      },
+      {
+        "name": "narrow",
+        "value": "420px"
+      }
+    ],
+    "tonalRampNote": "Generated preview ramps only; runtime uses the exact CSS colors recorded in DESIGN.md."
+  },
+  "components": [
+    {
+      "name": "Primary download",
+      "description": "Main release action.",
+      "html": "<a class=\"ds-primary\" href=\"#download\">下载 macOS 客户端</a>",
+      "css": ".ds-primary{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:inline-flex;align-items:center;justify-content:center;min-width:204px;min-height:48px;padding:12px 20px;border-radius:8px;font-size:15px;font-weight:550;text-decoration:none;background:var(--ink,#171719);color:var(--paper,#fff);transition:background .16s ease-out}.ds-primary:hover{background:#37373c}.ds-primary:active{opacity:.75}.ds-primary:focus-visible{outline:2px solid var(--focus,#245dc2);outline-offset:5px}@media(prefers-reduced-motion:reduce){.ds-primary{transition:none}}"
+    },
+    {
+      "name": "Copy command",
+      "description": "Copy action with visible disabled state.",
+      "html": "<button class=\"ds-copy\" type=\"button\">复制</button>",
+      "css": ".ds-copy{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;border:0;background:transparent;min-height:44px;min-width:64px;padding:8px;border-radius:5px;font-size:11px;color:var(--muted,#66666e);cursor:pointer}.ds-copy:hover{background:var(--line,#e5e5e8);color:var(--ink,#171719)}.ds-copy:disabled{opacity:.45;cursor:not-allowed}.ds-copy:active{opacity:.75}.ds-copy:focus-visible{outline:2px solid var(--focus,#245dc2);outline-offset:5px}"
+    },
+    {
+      "name": "Navigation",
+      "description": "Quiet links to installation and releases.",
+      "html": "<nav class=\"ds-nav\"><a href=\"#install\">安装 Core</a><a href=\"#releases\">版本记录</a></nav>",
+      "css": ".ds-nav{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;display:flex;gap:32px;font-size:14px}.ds-nav a{color:var(--muted,#66666e);text-decoration:none;padding-block:12px}.ds-nav a:hover{color:var(--ink,#171719)}.ds-nav a:active{opacity:.75}.ds-nav a:focus-visible{outline:2px solid var(--focus,#245dc2);outline-offset:5px}"
+    },
+    {
+      "name": "Command surface",
+      "description": "Wrapping monospace installation text.",
+      "html": "<div class=\"ds-command\"><code>curl -fsSL https://wandapp.github.io/install.sh | sh</code></div>",
+      "css": ".ds-command{background:var(--surface,#f6f6f7);border-radius:8px;padding:8px 8px 8px 16px;min-height:62px;display:flex;align-items:center}.ds-command code{font:12px/1.8 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere;color:var(--ink,#171719)}"
+    },
+    {
+      "name": "Disclosure",
+      "description": "Native secondary installation guidance.",
+      "html": "<details class=\"ds-details\"><summary>已经有 Core？</summary><p>直接在客户端连接已有的电脑或服务器。</p></details>",
+      "css": ".ds-details{font-family:-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;border-top:1px solid var(--line,#e5e5e8);padding:18px 0;color:var(--ink,#171719)}.ds-details summary{font-size:14px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:24px}.ds-details summary::-webkit-details-marker{display:none}.ds-details summary::after{content:\"+\";font-size:19px;color:var(--muted,#66666e)}.ds-details[open] summary::after{content:\"−\"}.ds-details summary:hover{color:var(--accent,#225c44)}.ds-details summary:focus-visible{outline:2px solid var(--focus,#245dc2);outline-offset:5px}.ds-details p{font-size:13px;color:var(--muted,#66666e);line-height:1.9;margin-top:14px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Wand, with the cleanliness of Linear and Apple Notes",
+    "overview": "The existing Wand double-cat identity on a white canvas, with restrained system typography and a black primary action. The user’s Linear / Apple Notes references establish cleanliness and brevity; no new visual identity is introduced.",
+    "keyCharacteristics": [
+      "Existing double-cat identity.",
+      "Quiet white surfaces and clear type hierarchy.",
+      "Short copy and visible installation actions."
+    ],
+    "rules": [],
+    "dos": [
+      "Do preserve the existing double-cat mark.",
+      "Do use placement, hierarchy and whitespace to explain the page.",
+      "Do keep release availability and recovery messages truthful."
+    ],
+    "donts": [
+      "Don’t add slogans, secondary badges or decorative marketing copy.",
+      "Don’t present the terminal illustration as a real application screenshot.",
+      "Don’t introduce decorative gradients or repetitive feature cards."
+    ]
+  }
+}

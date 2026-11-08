@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="下载 Wand macOS 客户端，或通过 curl 安装 Core。连接本机与远程电脑上的终端。"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Wand — 下载与安装</title>
+    <link rel="icon" href="./assets/brand-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./main.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">跳到正文</a>
+    <header class="site-header wrap">
+      <a class="brand" href="./" aria-label="Wand 首页"
+        ><img
+          src="./assets/brand-mark.svg"
+          width="22"
+          height="32"
+          alt=""
+        /><span>Wand</span></a
+      >
+      <nav aria-label="主导航">
+        <a href="#install">安装 Core</a
+        ><a href="https://github.com/wandapp/wandapp.github.io/releases"
+          >版本记录 <span aria-hidden="true">↗</span></a
+        >
+      </nav>
+    </header>
+    <main id="main">
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <h1 id="hero-title">Wand for Mac.</h1>
+          <p class="lead">连接本机或远程电脑，<br />继续你的终端工作。</p>
+          <div class="download-group">
+            <a
+              id="download"
+              class="button primary"
+              href="https://github.com/wandapp/wandapp.github.io/releases"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4" /></svg
+              ><span id="download-label">查看 macOS 版本</span></a
+            >
+            <p class="requirements" id="requirements">
+              macOS 13 或更高版本 · Apple Silicon
+            </p>
+            <p class="release-status" id="release-status" role="status">
+              正在读取版本信息…
+            </p>
+          </div>
+        </div>
+        <figure class="preview">
+          <div class="preview-window" aria-label="终端连接示意">
+            <div class="window-title">
+              <div class="window-dots" aria-hidden="true">
+                <i></i><i></i><i></i>
+              </div>
+              <span>Wand</span><span class="window-spacer"></span>
+            </div>
+            <div class="window-content">
+              <div class="preview-sidebar" aria-hidden="true">
+                <div class="sidebar-heading">工作区</div>
+                <div class="folder">
+                  <svg viewBox="0 0 20 20">
+                    <path d="M2.5 5.5h5l1.5 2h8.5v9h-15z" /></svg
+                  >my-project
+                </div>
+                <div class="sidebar-heading tasks-heading">终端</div>
+                <div class="selected-session">
+                  <span class="session-dot"></span>开发
+                </div>
+              </div>
+              <div class="preview-terminal">
+                <div class="terminal-top">
+                  <span>my-project</span
+                  ><span class="connection"><span></span>已连接</span>
+                </div>
+                <div class="terminal-body">
+                  <p><span class="prompt">~/my-project</span></p>
+                  <p><span class="prompt-symbol">❯</span> git status --short</p>
+                  <p class="terminal-output">M src/app.ts</p>
+                  <p class="next-prompt">
+                    <span class="prompt-symbol">❯</span>
+                    <span class="cursor" aria-hidden="true"></span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <figcaption>连接示意 · 终端在 Core 所在的电脑上运行</figcaption>
+        </figure>
+      </section>
+      <section
+        class="install wrap"
+        id="install"
+        aria-labelledby="install-title"
+      >
+        <div class="section-intro">
+          <h2 id="install-title">先安装 Core。</h2>
+          <p>在运行终端的电脑上安装一次，<br />再从客户端连接。</p>
+        </div>
+        <div class="install-instructions">
+          <div class="command-step">
+            <div class="step-title">
+              <h3>安装</h3>
+              <span id="core-platforms">macOS · Apple Silicon</span>
+            </div>
+            <div class="command-box">
+              <code id="install-command"
+                >curl -fsSL https://wandapp.github.io/install.sh | sh</code
+              ><button
+                class="copy"
+                id="copy-install"
+                type="button"
+                aria-label="复制 Core 安装命令"
+                disabled
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="8" y="8" width="12" height="13" rx="2" />
+                  <path
+                    d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"
+                  /></svg
+                ><span>复制</span>
+              </button>
+            </div>
+          </div>
+          <div class="command-step">
+            <h3>启动</h3>
+            <div class="command-box">
+              <code id="start-command">~/.local/bin/wand-core start</code
+              ><button
+                class="copy"
+                id="copy-start"
+                type="button"
+                aria-label="复制 Core 启动命令"
+                disabled
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="8" y="8" width="12" height="13" rx="2" />
+                  <path
+                    d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"
+                  /></svg
+                ><span>复制</span>
+              </button>
+            </div>
+          </div>
+          <p
+            id="copy-status"
+            class="copy-status"
+            role="status"
+            aria-live="polite"
+          >
+            安装包发布后可复制命令。
+          </p>
+          <p class="after-install">
+            启动后打开
+            <a href="http://127.0.0.1:3210" target="_blank" rel="noopener"
+              >127.0.0.1:3210 <span aria-hidden="true">↗</span></a
+            >
+            完成设置，再连接客户端。
+          </p>
+          <details>
+            <summary>已经有 Core？</summary>
+            <p>
+              直接在客户端连接已有的电脑或服务器，无需在每台设备重复安装。远程
+              Core 需可访问的地址；连接配置由你自己的 Core 管理。
+            </p>
+          </details>
+          <details>
+            <summary>下载与更新</summary>
+            <p>
+              客户端从 GitHub Releases 下载，Core
+              通过上方命令安装。两者分别更新；更新 Core
+              前请先结束需要保留的终端任务。
+            </p>
+            <p>
+              <a href="https://github.com/wandapp/wandapp.github.io/releases"
+                >查看所有版本与校验文件 <span aria-hidden="true">↗</span></a
+              >
+            </p>
+          </details>
+        </div>
+      </section>
+      <noscript
+        ><p class="wrap no-script">
+          JavaScript 未启用。请到
+          <a href="https://github.com/wandapp/wandapp.github.io/releases"
+            >GitHub Releases</a
+          >
+          查看已发布的下载与安装说明。
+        </p></noscript
+      >
+    </main>
+    <footer class="wrap">
+      <a class="brand footer-brand" href="./"
+        ><img
+          src="./assets/brand-mark.svg"
+          width="17"
+          height="25"
+          alt=""
+        /><span>Wand</span></a
+      >
+      <div class="footer-space" aria-hidden="true"></div>
+      <a href="https://github.com/wandapp"
+        >GitHub <span aria-hidden="true">↗</span></a
+      >
+    </footer>
+  </body>
+</html>
