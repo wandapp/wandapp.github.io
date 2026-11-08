@@ -1,7 +1,7 @@
 #!/bin/sh
 # System installation; Scheduler and gateway retain independent lifecycles.
 set -eu
-VERSION=0.1.1
+VERSION=0.1.2
 RELEASE=https://github.com/wandapp/wandapp.github.io/releases/download/core-v$VERSION
 fail() { printf '%s\n' "$*" >&2; exit 1; }
 [ "$(uname -s)" = Linux ] || fail 'Linux is required.'
