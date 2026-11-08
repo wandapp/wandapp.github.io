@@ -36,7 +36,7 @@ if [ -e "$DEST/Wand.app" ]; then
   if pgrep -f "$DEST/Wand.app/Contents/MacOS/" >/dev/null; then fail 'Quit Wand before updating. No App or Core process was stopped.'; fi
   NEW_EXEC=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Contents/Info.plist")
   case "$NEW_EXEC" in ''|*/*|*..*) fail 'Invalid executable name.' ;; esac
-  if cmp -s "$APP/Contents/MacOS/$NEW_EXEC" "$DEST/Wand.app/Contents/MacOS/$NEW_EXEC"; then
+  if cmp -s "$APP/Contents/MacOS/$NEW_EXEC" "$DEST/Wand.app/Contents/MacOS/$NEW_EXEC" && cmp -s "$APP/Contents/Info.plist" "$DEST/Wand.app/Contents/Info.plist" && cmp -s "$APP/Contents/_CodeSignature/CodeResources" "$DEST/Wand.app/Contents/_CodeSignature/CodeResources"; then
     printf 'This Wand build is already installed at %s/Wand.app.\n' "$DEST"
     open "$DEST/Wand.app"
     exit 0
