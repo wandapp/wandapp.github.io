@@ -1,26 +1,11 @@
-import {
-  releasesURL,
-  validateRelease,
-  copyCommand,
-  appInstallCommand,
-} from "./release.js";
+import { releasesURL, validateRelease, copyCommand } from "./release.js";
 
 const byId = (id) => document.getElementById(id);
 const download = byId("download");
 const status = byId("release-status");
 const feedback = byId("copy-status");
-const appFeedback = byId("app-copy-status");
-const appCopy = byId("copy-app-install");
-byId("app-install-command").textContent = appInstallCommand;
-const coreCopies = [
-  [byId("copy-install"), byId("install-command")],
-  [byId("copy-start"), byId("start-command")],
-];
-
-const copies = [
-  ...coreCopies.map(([button, code]) => [button, code, feedback]),
-  [appCopy, byId("app-install-command"), appFeedback],
-];
+const installCopy = byId("copy-install");
+const copies = [[installCopy, byId("install-command"), feedback]];
 
 for (const [button, code, copyFeedback] of copies) {
   button.addEventListener("click", async () => {
@@ -54,30 +39,25 @@ async function loadRelease() {
       cache: "no-cache",
     });
     if (!response.ok) throw new Error("Release unavailable");
-    const { macos, core } = validateRelease(await response.json());
+    const { macos, installer } = validateRelease(await response.json());
     byId("requirements").textContent = macos.requirements;
-    byId("core-platforms").textContent = core.platforms;
+    byId("installer-platforms").textContent = installer.platforms;
+    byId("installer-description").textContent = installer.description;
     if (macos.available) {
       download.href = macos.url;
       byId("download-label").textContent = "下载 macOS 客户端";
       status.textContent = `v${macos.version} · ${macos.notice}`;
-      appCopy.disabled = false;
-      appFeedback.textContent = `macOS v${macos.version} · 从 GitHub Releases 下载。`;
     } else {
       download.href = releasesURL;
       status.textContent = "macOS 客户端尚未发布，可前往版本页查看。";
-      appFeedback.textContent = "macOS 客户端尚未发布，请稍后查看。";
     }
-    if (core.available) {
-      coreCopies.forEach(([button]) => {
-        button.disabled = false;
-      });
-      feedback.textContent = `Core v${core.version} · 安装后不会自动启动。`;
-    } else feedback.textContent = "Core 安装包尚未发布，请稍后查看。";
+    installCopy.disabled = !installer.available;
+    feedback.textContent = installer.available
+      ? "在终端运行，安装程序会自动完成配置与启动。"
+      : "安装包尚未发布，请稍后查看。";
   } catch {
     status.textContent = "暂时无法读取版本，请到 GitHub Releases 查看。";
     feedback.textContent = "未能确认安装版本。请刷新页面，或查看版本记录。";
-    appFeedback.textContent = feedback.textContent;
   } finally {
     clearTimeout(timer);
   }

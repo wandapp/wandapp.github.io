@@ -3,8 +3,7 @@ import { validateRelease } from "../release.js";
 const manifest = validateRelease(
   JSON.parse(await readFile("release.json", "utf8")),
 );
-if (manifest.core.available) await access("install.sh");
-if (manifest.macos.available) await access("install-app.sh");
+if (manifest.installer.available) await access("install.sh");
 await rm("dist", { recursive: true, force: true });
 await mkdir("dist", { recursive: true });
 for (const file of [
@@ -16,7 +15,7 @@ for (const file of [
   "assets",
 ])
   await cp(file, `dist/${file}`, { recursive: true });
-for (const installer of ["install.sh", "install-app.sh"]) {
+for (const installer of ["install.sh", "install-macos.sh", "install-linux.sh"]) {
   try {
     await access(installer);
     await cp(installer, `dist/${installer}`);

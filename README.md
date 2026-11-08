@@ -22,19 +22,12 @@ GitHub Pages 使用 `.github/workflows/pages.yml`，从 `main` 构建发布。Pa
 - `macos.available`：验过真实 GitHub Release 文件后改为 true。
 - `macos.url`：直接指向 `wandapp/wandapp.github.io` GitHub Release 的 `Wand-macOS-arm64.zip`。
 - `macos.version` / `requirements` / `notice`：版本、系统要求、签名状态。
-- `core.available`：实际公开安装器与 Core 产物可用后改为 true。
-- `core.command`：`curl -fsSL https://wandapp.github.io/install.sh | sh`。
-- `core.startCommand`：`~/.local/bin/wand-core start`。
-- `core.version` / `platforms`：实际支持范围。
+- `installer.available`：统一安装器及其宣称支持的平台产物均通过验证后改为 true。
+- `installer.command`：`curl -fsSL https://wandapp.github.io/install.sh | sh`。
+- `installer.platforms` / `description`：已经验证的平台范围和自动安装行为；未验收 Linux 前不要列出 Linux。
 
-根项目分发流程负责同步 `install.sh`。Core 可用时构建会检查安装器存在。未发布、读取失败、脚本禁用时不会给出虚假的下载成功状态：GitHub Releases 是始终可见的替代入口。
+首屏提供下载 App 与一条 curl 命令两种入口。macOS 安装完整 App，登录后自动启动；服务器安装器负责系统服务，无需用户另行安装 Core 或运行 start。内部模块仍可独立发布，这不构成用户安装步骤。
+
+根项目分发流程负责同步 `install.sh`、`install-macos.sh`、`install-linux.sh`。统一安装可用时构建检查入口安装器存在，平台脚本存在时进入部署白名单。下载与统一安装状态独立控制。未发布、读取失败或脚本禁用时提供 GitHub Releases 作为替代入口。
 
 本页终端是标明“连接示意”的虚构示例，没有使用私密会话截图。品牌 SVG 复制自项目 `frontend/src/brand-mark.svg`，保持同源轮廓。
-
-macOS 主下载区域的“下载与更新”还提供客户端命令：
-
-```sh
-curl -fsSL https://wandapp.github.io/install-app.sh | sh
-```
-
-客户端命令由 `macos.available` 单独控制，不受 Core 发布状态影响；安装到 `~/Applications/Wand.app`，不自动打开。根分发流程负责同步 `install-app.sh`，macOS 可用时构建要求该文件存在。两个安装脚本都纳入静态部署白名单。

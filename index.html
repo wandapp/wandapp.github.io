@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="下载 Wand macOS 客户端，或通过 curl 安装 Core。连接本机与远程电脑上的终端。"
+      content="下载 Wand macOS 客户端，或通过一条 curl 命令自动安装。连接本机与远程电脑上的终端。"
     />
     <meta name="theme-color" content="#ffffff" />
     <title>Wand — 下载与安装</title>
@@ -25,7 +25,7 @@
         /><span>Wand</span></a
       >
       <nav aria-label="主导航">
-        <a href="#install">安装 Core</a
+        <a href="#install">命令行安装</a
         ><a href="https://github.com/wandapp/wandapp.github.io/releases"
           >版本记录 <span aria-hidden="true">↗</span></a
         >
@@ -52,18 +52,16 @@
               正在读取版本信息…
             </p>
           </div>
-          <details class="app-install">
-            <summary>下载与更新</summary>
-            <p>也可以在终端安装客户端：</p>
+          <div class="quick-install" id="install">
+            <h2>或用一条命令安装</h2>
             <div class="command-box">
-              <code id="app-install-command"
-                >curl -fsSL https://wandapp.github.io/install-app.sh | sh</code
-              >
-              <button
+              <code id="install-command"
+                >curl -fsSL https://wandapp.github.io/install.sh | sh</code
+              ><button
                 class="copy"
-                id="copy-app-install"
+                id="copy-install"
                 type="button"
-                aria-label="复制 macOS 客户端安装命令"
+                aria-label="复制 Wand 安装命令"
                 disabled
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -74,25 +72,8 @@
                 ><span>复制</span>
               </button>
             </div>
-            <p
-              class="copy-status"
-              id="app-copy-status"
-              role="status"
-              aria-live="polite"
-            >
-              客户端发布后可复制命令。
-            </p>
-            <p>
-              安装到
-              <code>~/Applications/Wand.app</code>，不会自动打开。客户端与 Core
-              分别更新。
-            </p>
-            <p>
-              <a href="https://github.com/wandapp/wandapp.github.io/releases"
-                >查看所有版本与校验文件 <span aria-hidden="true">↗</span></a
-              >
-            </p>
-          </details>
+            <p id="copy-status" class="copy-status" role="status" aria-live="polite">安装包发布后可复制命令。</p>
+          </div>
         </div>
         <figure class="preview">
           <div class="preview-window" aria-label="终端连接示意">
@@ -132,84 +113,23 @@
               </div>
             </div>
           </div>
-          <figcaption>连接示意 · 终端在 Core 所在的电脑上运行</figcaption>
+          <figcaption>界面示意 · 连接本机与远程终端</figcaption>
         </figure>
       </section>
-      <section
-        class="install wrap"
-        id="install"
-        aria-labelledby="install-title"
-      >
+      <section class="install wrap" aria-labelledby="install-title">
         <div class="section-intro">
-          <h2 id="install-title">先安装 Core。</h2>
-          <p>在运行终端的电脑上安装一次，<br />再从客户端连接。</p>
+          <h2 id="install-title">安装，然后开始。</h2>
+          <p id="installer-platforms">正在确认支持的平台…</p>
         </div>
         <div class="install-instructions">
-          <div class="command-step">
-            <div class="step-title">
-              <h3>安装</h3>
-              <span id="core-platforms">macOS · Apple Silicon</span>
-            </div>
-            <div class="command-box">
-              <code id="install-command"
-                >curl -fsSL https://wandapp.github.io/install.sh | sh</code
-              ><button
-                class="copy"
-                id="copy-install"
-                type="button"
-                aria-label="复制 Core 安装命令"
-                disabled
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="8" y="8" width="12" height="13" rx="2" />
-                  <path
-                    d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"
-                  /></svg
-                ><span>复制</span>
-              </button>
-            </div>
-          </div>
-          <div class="command-step">
-            <h3>启动</h3>
-            <div class="command-box">
-              <code id="start-command">~/.local/bin/wand-core start</code
-              ><button
-                class="copy"
-                id="copy-start"
-                type="button"
-                aria-label="复制 Core 启动命令"
-                disabled
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <rect x="8" y="8" width="12" height="13" rx="2" />
-                  <path
-                    d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"
-                  /></svg
-                ><span>复制</span>
-              </button>
-            </div>
-          </div>
-          <p
-            id="copy-status"
-            class="copy-status"
-            role="status"
-            aria-live="polite"
-          >
-            安装包发布后可复制命令。
-          </p>
-          <p class="after-install">
-            启动后打开
-            <a href="http://127.0.0.1:3210" target="_blank" rel="noopener"
-              >127.0.0.1:3210 <span aria-hidden="true">↗</span></a
-            >
-            完成设置，再连接客户端。
-          </p>
+          <p id="installer-description">安装程序会完成配置，无需额外启动命令。</p>
           <details>
-            <summary>已经有 Core？</summary>
-            <p>
-              直接在客户端连接已有的电脑或服务器，无需在每台设备重复安装。远程
-              Core 需可访问的地址；连接配置由你自己的 Core 管理。
-            </p>
+            <summary>连接已有服务器</summary>
+            <p>在 App 中添加服务器地址，连接已经运行 Wand 的电脑或服务器。</p>
+          </details>
+          <details>
+            <summary>下载与更新</summary>
+            <p>桌面客户端下载直接来自 GitHub Releases。版本信息与校验文件可在<a href="https://github.com/wandapp/wandapp.github.io/releases">版本记录</a>中查看。</p>
           </details>
         </div>
       </section>

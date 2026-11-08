@@ -23,3 +23,11 @@ GitHub Pages workflow参照[官方自定义工作流](https://docs.github.com/en
 - 未发布时客户端按钮禁用；“下载与更新”可由键盘Enter展开。
 - 展开状态1440px/390px均无横向溢出，截图在`.impeccable/review/app-install-desktop.png`与`app-install-mobile.png`。
 - 未修改发布清单状态及任何安装器；实际脚本下载与执行由根分发任务验收。
+
+## 2026-11-08 — 统一自动安装入口（替代此前两步 Core 安装）
+
+通过：`npm run check`、4 项 `npm test`、`npm run build`。首屏只保留 macOS App 下载和 `curl -fsSL https://wandapp.github.io/install.sh | sh`；没有 Core 前置、第二条安装脚本或手动 start。
+
+Ego 浏览器实际检查通过：1440 桌面和 390 窄屏无横向溢出；发布关闭时复制禁用；注入可用 manifest 后下载直达约定 GitHub Release 资产，真实点击复制成功；剪贴板拒绝时明确失败并选中完整命令；Enter 展开远程连接说明；版本请求失败时禁用复制并给出替代版本页。TaskSpace 40 已结束。
+
+这是官网交互验收，不代表安装产物、公证或服务器自动启动通过。macOS 与 installer 的实际发布状态仍为 false，Linux 未宣称可用；根分发任务验收后更新 manifest。此次尝试派发独立复核受 agent thread limit 阻挡，未取得新的独立复核结论。

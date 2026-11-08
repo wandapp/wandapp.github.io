@@ -707,3 +707,12 @@ footer > a:hover {
 .app-install .copy-status {
   margin-top: 0;
 }
+
+.quick-install { margin-top: 28px; scroll-margin-top: 30px; }
+.quick-install h2 { font-size: 14px; font-weight: 500; margin: 0 0 12px; }
+.quick-install .command-box { flex-wrap: wrap; }
+.quick-install .command-box code { font-size: 12px; overflow-wrap: anywhere; }
+.quick-install .copy { margin-left: auto; min-width: 44px; }
+.quick-install .copy span { display: none; }
+.quick-install { text-align: left; }
+.install-instructions > p { margin-top: 0; color: var(--muted); line-height: 1.7; }

@@ -11,10 +11,10 @@ Delegated implementation choice: buildless static HTML, CSS and ES modules. GitH
 People using Wand to access terminal work on their own computers. Chinese is the current interface language.
 
 ## Product Purpose
-The official Wand download and installation entry. Success means visitors can download the macOS app or install Core using the published curl command.
+The official Wand download and installation entry. Success means visitors can download the macOS app or install everything with the single published curl command.
 
 ## Capabilities and Constraints
-Core and clients ship separately. The macOS preview targets macOS 13+ on Apple Silicon. It is not Apple-notarized. Core currently ships for macOS Apple Silicon only. Download URLs must resolve to public GitHub Release assets before the manifest enables them. No invented platform support, testimonials, performance claims or licensing promises.
+Internal modules ship independently, while end users choose App download or one automatic installer. There is no Core prerequisite or manual start step. The macOS preview targets macOS 13+ on Apple Silicon. It is not Apple-notarized. Only platforms verified in the manifest may be advertised; Linux availability is pending artifact verification. Download URLs must resolve to public GitHub Release assets before the manifest enables them. No invented platform support, testimonials, performance claims or licensing promises.
 
 ## Brand Commitments
 Wand and the existing double-cat mark. The user requests the cleanliness of Linear and Apple Notes: short copy, clear layout and restrained typography. No invented marketing slogans or secondary badges.
@@ -23,4 +23,4 @@ Wand and the existing double-cat mark. The user requests the cleanliness of Line
 Parent repository ARCHITECTURE.md and AGENTS.md; frontend/src/brand-mark.svg; release contract supplied by the parent implementation agent. Installation and distribution artifacts are built and verified by the parent agent.
 
 ## Product Principles
-A page explains by placement. Downloads are truthful. App and Core remain independently distributed. The website never handles terminal credentials or user session data.
+A page explains by placement. Downloads are truthful. Installation completes setup and startup; internal release boundaries do not become user chores. The website never handles terminal credentials or user session data.

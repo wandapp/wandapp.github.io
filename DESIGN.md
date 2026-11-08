@@ -108,4 +108,4 @@ The terminal connection preview is explicitly captioned as an illustration. Its 
 
 ### Client command disclosure
 
-The macOS download group owns the native `details.app-install` disclosure. It contains the optional `install-app.sh` command and its own live feedback region, enabled by macOS availability independently of Core. It reuses the command box, copy button, and shared copy handler; text-align is explicitly left aligned even when the narrow hero is centered. Opening it expands document flow rather than overlaying content.
+The hero presents two installation choices immediately: the macOS download button and one visible `install.sh` command. A single installer availability flag controls copying independently from the download flag. Shared live feedback handles clipboard success and denial. There is no separate Core installation, second script, or manual start command. Supported platforms and installation behavior come from the release manifest. Remote connection and release details remain secondary native disclosures.
