@@ -2,6 +2,16 @@
 name: Wand website
 description: Existing Wand identity for downloads and installation
 colors:
+  paper: "#fff"
+  ink: "#171719"
+  muted: "#66666e"
+  line: "#e5e5e8"
+  surface: "#f6f6f7"
+  accent: "#225c44"
+  scroll-thumb: "#aaaab2"
+  scroll-track: "#f6f6f7"
+  scroll-hover: "#777780"
+  focus: "#245dc2"
 typography:
   display:
     fontFamily: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
