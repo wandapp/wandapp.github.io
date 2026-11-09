@@ -111,6 +111,9 @@ Environment=WAND_SCHEDULER_DIR=$USER_HOME/.new-wand
 Environment=FRONTEND_DIST=$DEST/web
 WorkingDirectory=$USER_HOME
 ExecStart=$DEST/bin/wand-server
+KillSignal=SIGINT
+TimeoutStopSec=30s
+SendSIGKILL=no
 Restart=on-failure
 RestartSec=3
 UMask=0077
