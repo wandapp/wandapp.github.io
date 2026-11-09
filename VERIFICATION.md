@@ -39,3 +39,7 @@ Ego 浏览器实际检查通过：1440 桌面和 390 窄屏无横向溢出；发
 Ego Browser TaskSpace 3：1440×1000 和 390×844 实际布局无横向溢出；下载入口可达且显示各自公证状态；「下载与更新」可原地展开，包含 DMG 拖动/替换、系统首次打开 Beta 与 App Beta 开关路径。截图在根 output/release-0.1.4。Impeccable 的两个窗口内边距 warning 限于已有终端插图 chrome（实际文本由子层内边距定位），其余为既有样式与设计文档的静态差异提示；本轮截图未见下载区域问题，未扩展修改插图或设计体系。
 
 发布资产已从公开 GitHub URL 重新下载：正式 DMG SHA-256 为 46c19399bdb7396a56e2945b8c22abcfb508918105ce230048a44c91dcb60336；Beta 为 2575f9fd5d1676173d42f85541d3242334f0e2de1c3623daf190a6b22df9d1cb，与本机发布包及公开 .sha256 一致。正式 DMG 挂载后 App 的签名、版本、票据和 Gatekeeper 通过；公开 Beta 通过客户端真实安装器的签名/版本/构建验证。官网部署后的公网回读见根 VERIFICATION.md。
+
+## 2026-11-09 — 正式版 0.1.5 (17)
+
+正式入口与安装脚本更新到 0.1.5 (17)，Beta 继续为 0.1.4 (16)。新正式版已包含更新通道开关及登录项/后台项授权复用修复，下载说明不再将开关限定为 Beta 客户端。npm check、5 项测试、build 通过；DMG Developer ID、Apple 公证、票据与 Gatekeeper 通过。真实浏览器从公开 Release 下载取得 SHA-256 d2757ccc577b11b59b8cb8181717db94d73a8b3454ab83183fc3314cf07c6180，并通过生产安装器的临时目录替换测试。公网清单回读与下载链路的最终结果见根 VERIFICATION.md。
