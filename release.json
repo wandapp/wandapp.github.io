@@ -2,8 +2,8 @@
   "schema": 1,
   "macos": {
     "available": true,
-    "version": "0.1.2",
-    "url": "https://github.com/wandapp/wandapp.github.io/releases/download/macos-v0.1.2/Wand-macOS-arm64.zip",
+    "version": "0.1.3",
+    "url": "https://github.com/wandapp/wandapp.github.io/releases/download/macos-v0.1.3/Wand-macOS-arm64.zip",
     "requirements": "macOS 13 或更高版本 · Apple Silicon",
     "notice": "原生客户端，内置完整运行服务。"
   },

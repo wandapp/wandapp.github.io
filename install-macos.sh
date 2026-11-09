@@ -1,7 +1,7 @@
 #!/bin/sh
 # Install the complete signed desktop App and start its automatic service setup.
 set -eu
-VERSION=0.1.2
+VERSION=0.1.3
 BASE=https://github.com/wandapp/wandapp.github.io/releases/download/macos-v$VERSION
 ASSET=Wand-macOS-arm64.zip
 fail() { printf '%s\n' "$*" >&2; exit 1; }
