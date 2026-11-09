@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "macos": {
-    "available": false,
+    "available": true,
     "version": "0.1.2",
     "url": "https://github.com/wandapp/wandapp.github.io/releases/download/macos-v0.1.2/Wand-macOS-arm64.zip",
     "requirements": "macOS 13 或更高版本 · Apple Silicon",
@@ -10,7 +10,7 @@
   "installer": {
     "available": true,
     "command": "curl -fsSL https://wandapp.github.io/install.sh | sh",
-    "platforms": "Linux · ARM64、x64",
-    "description": "Linux 自动安装并启动服务，在终端完成首次账号设置。macOS 新包正在等待 Apple 公证。"
+    "platforms": "macOS · Apple Silicon / Linux · ARM64、x64",
+    "description": "macOS 安装原生客户端并自动启动服务；Linux 在安装终端完成首次账号设置。"
   }
 }
