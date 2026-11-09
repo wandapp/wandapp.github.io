@@ -9,8 +9,9 @@ const source = JSON.parse(
 test("only release assets and the established installer commands are accepted", () => {
   assert.equal(validateRelease(source), source);
   for (const url of [
-    "https://evil.example/Wand-macOS-arm64.zip",
-    "https://github.com/elsewhere/repo/releases/download/v1/Wand-macOS-arm64.zip",
+    "https://evil.example/Wand-macOS-arm64.dmg",
+    "https://github.com/elsewhere/repo/releases/download/v1/Wand-macOS-arm64.dmg",
+    "https://github.com/wandapp/wandapp.github.io/releases/download/macos-v0.0.1/Wand-macOS-arm64.zip",
     "javascript:alert(1)",
   ]) {
     const value = structuredClone(source);
@@ -33,6 +34,30 @@ test("unpublished and published manifests remain distinct", () => {
   value.macos.available = "true";
   assert.throws(() => validateRelease(value));
 });
+test("beta and stable downloads stay in their own release tags", () => {
+  assert.equal(validateRelease(source).beta.build, 16);
+  for (const [field, replacement] of [
+    ["url", source.macos.url],
+    ["url", source.beta.url.replace("-b16", "-b17")],
+    ["url", source.beta.url.replace("github.com/", "other@github.com/")],
+    ["url", source.beta.url.replace(".dmg", ".zip")],
+    ["build", 0],
+    ["build", 16.5],
+    ["build", "16"],
+    ["available", "true"],
+    ["version", "01.4.0"],
+  ]) {
+    const value = structuredClone(source);
+    value.beta[field] = replacement;
+    assert.throws(() => validateRelease(value));
+  }
+  const hidden = structuredClone(source);
+  hidden.beta = { available: false };
+  assert.equal(validateRelease(hidden).beta.available, false);
+  delete hidden.beta;
+  assert.equal(validateRelease(hidden).beta, undefined);
+});
+
 test("copy succeeds only after the clipboard accepts the exact text", async () => {
   let copied;
   await copyCommand(source.installer.command, {

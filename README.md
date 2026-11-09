@@ -20,8 +20,10 @@ GitHub Pages 使用 `.github/workflows/pages.yml`，从 `main` 构建发布。Pa
 `release.json` 是唯一发布事实来源：
 
 - `macos.available`：验过真实 GitHub Release 文件后改为 true。
-- `macos.url`：直接指向 `wandapp/wandapp.github.io` GitHub Release 的 `Wand-macOS-arm64.zip`。
-- `macos.version` / `requirements` / `notice`：版本、系统要求、签名状态。
+- `macos.url`：直接指向 `wandapp/wandapp.github.io` GitHub Release 的 `Wand-macOS-arm64.dmg`。打开后把 Wand 拖到应用程序文件夹。
+- `macos.version` / `build` / `requirements` / `notice`：正式版版本、构建号、系统要求、公证状态。
+- `beta.available` / `version` / `build` / `url`：独立 Beta 通道，URL 固定到 `macos-v<版本>-b<构建号>/Wand-macOS-arm64.dmg`。Beta 使用 Developer ID 签名、未经 Apple 公证，发布到 GitHub prerelease；官网只在文件公开且可校验后启用这个下载。
+- App 默认读取 `macos`；用户在「设置 → 更新」开启「接收 Beta 更新」后读取 `beta`。同版本比较数字构建号，关闭 Beta 不自动降级。
 - `installer.available`：统一安装器及其宣称支持的平台产物均通过验证后改为 true。
 - `installer.command`：`curl -fsSL https://wandapp.github.io/install.sh | sh`。
 - `installer.platforms` / `description`：已经验证的平台范围和自动安装行为；未验收 Linux 前不要列出 Linux。

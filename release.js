@@ -10,25 +10,41 @@ export function validateRelease(value) {
     typeof value.installer?.available !== "boolean"
   )
     throw new Error("Invalid release manifest");
-  const { macos, installer } = value;
-  const version = /^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/;
+  const { macos, installer, beta } = value;
+  const version = /^(0|[1-9]\d{0,2})\.(0|[1-9]\d{0,2})\.(0|[1-9]\d{0,2})$/;
   if (!version.test(macos.version))
     throw new Error("Invalid version");
-  const url = new URL(macos.url);
-  if (
-    url.origin !== "https://github.com" ||
-    !url.pathname.startsWith("/wandapp/wandapp.github.io/releases/") ||
-    !url.pathname.endsWith("/Wand-macOS-arm64.zip") ||
-    url.search ||
-    url.hash
-  )
-    throw new Error("Invalid download URL");
+  assertAsset(macos.url, `macos-v${macos.version}`, ["Wand-macOS-arm64.dmg", "Wand-macOS-arm64.zip"]);
+  if (macos.build != null && (!Number.isSafeInteger(macos.build) || macos.build < 1))
+    throw new Error("Invalid stable build");
+  if (beta != null) {
+    if (typeof beta.available !== "boolean") throw new Error("Invalid beta channel");
+    if (beta.available) {
+      if (!version.test(beta.version) || !Number.isSafeInteger(beta.build) || beta.build < 1)
+        throw new Error("Invalid beta version");
+      assertAsset(beta.url, `macos-v${beta.version}-b${beta.build}`, ["Wand-macOS-arm64.dmg"]);
+    }
+  }
   for (const text of [macos.requirements, macos.notice, installer.platforms, installer.description])
     if (typeof text !== "string" || !text.trim() || text.length > 180)
       throw new Error("Invalid release text");
   if (installer.command !== installCommand)
     throw new Error("Unexpected installer command");
   return value;
+}
+
+function assertAsset(value, tag, names) {
+  const url = new URL(value);
+  const name = url.pathname.split("/").pop();
+  if (
+    url.origin !== "https://github.com" ||
+    url.username || url.password ||
+    url.pathname !== `/wandapp/wandapp.github.io/releases/download/${tag}/${name}` ||
+    !names.includes(name) ||
+    url.search ||
+    url.hash
+  )
+    throw new Error("Invalid download URL");
 }
 
 export async function copyCommand(

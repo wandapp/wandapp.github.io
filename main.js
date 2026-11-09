@@ -39,13 +39,19 @@ async function loadRelease() {
       cache: "no-cache",
     });
     if (!response.ok) throw new Error("Release unavailable");
-    const { macos, installer } = validateRelease(await response.json());
+    const { macos, installer, beta } = validateRelease(await response.json());
     byId("requirements").textContent = macos.requirements;
     byId("installer-platforms").textContent = installer.platforms;
     byId("installer-description").textContent = installer.description;
+    const betaLink = byId("beta-download");
+    byId("beta-channel").hidden = !beta?.available;
+    if (beta?.available) {
+      betaLink.href = beta.url;
+      byId("beta-status").textContent = `${beta.version} (${beta.build}) · 未经 Apple 公证`;
+    }
     if (macos.available) {
       download.href = macos.url;
-      byId("download-label").textContent = "下载 macOS 客户端";
+      byId("download-label").textContent = "下载正式版";
       status.textContent = `v${macos.version} · ${macos.notice}`;
     } else {
       download.href = releasesURL;

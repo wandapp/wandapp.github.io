@@ -193,6 +193,24 @@ h1 {
   max-width: 340px;
   line-height: 1.6;
 }
+.beta-channel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.beta-channel[hidden] {
+  display: none;
+}
+.beta-channel a {
+  font-size: 14px;
+  color: var(--ink);
+  padding-block: 8px;
+}
 .preview-window {
   background: var(--paper);
   box-shadow:
@@ -549,6 +567,9 @@ footer > a:hover {
   .release-status {
     margin-inline: auto;
     min-height: 24px;
+  }
+  .beta-channel {
+    justify-content: center;
   }
   .preview {
     width: 100%;

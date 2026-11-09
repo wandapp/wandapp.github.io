@@ -1,9 +1,9 @@
 #!/bin/sh
 # Install the complete signed desktop App and start its automatic service setup.
 set -eu
-VERSION=0.1.3
+VERSION=0.1.4
 BASE=https://github.com/wandapp/wandapp.github.io/releases/download/macos-v$VERSION
-ASSET=Wand-macOS-arm64.zip
+ASSET=Wand-macOS-arm64.dmg
 fail() { printf '%s\n' "$*" >&2; exit 1; }
 [ "$(uname -s)-$(uname -m)" = Darwin-arm64 ] || fail 'This release requires Apple Silicon macOS 13 or newer.'
 MAJOR=$(sw_vers -productVersion | cut -d. -f1)
@@ -14,7 +14,11 @@ mkdir -p "$DEST"
 LOCK=$DEST/.wand-install.lock
 mkdir "$LOCK" 2>/dev/null || fail 'Another Wand App installation is active.'
 TEMP=$(mktemp -d "$DEST/.wand-download.XXXXXX")
-cleanup() { rm -rf "$TEMP"; rmdir "$LOCK"; }
+cleanup() {
+  if [ -d "$TEMP/mnt/Wand.app" ]; then hdiutil detach "$TEMP/mnt" >/dev/null 2>&1 || return; fi
+  rm -rf "$TEMP"
+  rmdir "$LOCK"
+}
 trap cleanup EXIT HUP INT TERM
 curl --proto '=https' --tlsv1.2 -fLSs "$BASE/$ASSET" -o "$TEMP/$ASSET"
 curl --proto '=https' --tlsv1.2 -fLSs "$BASE/$ASSET.sha256" -o "$TEMP/checksum"
@@ -22,11 +26,13 @@ HASH=$(awk -v file="$ASSET" '$2 == file && length($1)==64 {print $1}' "$TEMP/che
 case "$HASH" in ''|*[!a-fA-F0-9]*) fail 'Invalid checksum manifest.' ;; esac
 [ "${#HASH}" = 64 ] || fail 'Invalid checksum length.'
 printf '%s  %s\n' "$HASH" "$TEMP/$ASSET" | shasum -a 256 -c -
-unzip -Z1 "$TEMP/$ASSET" > "$TEMP/entries"
-awk '/^\// || /(^|\/)\.\.($|\/)/ || !/^Wand.app(\/|$)/ {bad=1} END {exit bad}' "$TEMP/entries" || fail 'Unsafe archive paths.'
-ditto -x -k "$TEMP/$ASSET" "$TEMP"
+mkdir "$TEMP/mnt"
+hdiutil attach -nobrowse -readonly -mountpoint "$TEMP/mnt" "$TEMP/$ASSET"
+[ -d "$TEMP/mnt/Wand.app" ] || fail 'Wand.app is missing from the disk image.'
+ditto "$TEMP/mnt/Wand.app" "$TEMP/Wand.app"
+hdiutil detach "$TEMP/mnt"
 APP=$TEMP/Wand.app
-codesign --verify --deep --strict "$APP"
+codesign --verify --deep --strict --all-architectures --test-requirement '=anchor apple generic and identifier "dev.wandapp.macos" and certificate leaf[subject.OU] = "3C4HSZQCL5" and certificate leaf[field.1.2.840.113635.100.6.1.13] exists' "$APP"
 spctl --assess --type execute "$APP"
 [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")" = dev.wandapp.macos ] || fail 'Unexpected application identifier.'
 [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")" = "$VERSION" ] || fail 'Unexpected App version.'
