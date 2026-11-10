@@ -3,33 +3,33 @@
   "core": {
     "artifacts": {
       "macos-arm64": {
-        "sha256": "b998b33a6d1459c5d2cf93770e5d2c4fbcadf5f00d2d3f3ad86b6574e837faca",
-        "size": 4379351,
-        "url": "https://github.com/wandapp/wandapp.github.io/releases/download/core-v0.4.7/wand-core-0.4.7-macos-arm64.tar.gz"
+        "sha256": "c95edaa9a9b9e5e4547395211c21f338b1ca60e68113803fab9655e2620f6d02",
+        "size": 4378245,
+        "url": "https://github.com/wandapp/wandapp.github.io/releases/download/core-v0.4.8/wand-core-0.4.8-macos-arm64.tar.gz"
       }
     },
-    "build": 202611101749,
+    "build": 202611101752,
     "protocol": {
       "major": 1,
       "maxMinor": 0,
       "minMinor": 0
     },
-    "version": "0.4.7"
+    "version": "0.4.8"
   },
-  "issued": "2026-11-10T09:49:57Z",
+  "issued": "2026-11-10T09:52:49Z",
   "schema": 1,
   "web": {
     "artifact": {
-      "sha256": "11761f1d9424934012aadf1647e75320f9e24e5b1ae09b9a6cb0369f087c84b8",
-      "size": 55201,
-      "url": "https://github.com/wandapp/wandapp.github.io/releases/download/core-v0.4.7/wand-web-0.4.7.tar.gz"
+      "sha256": "17ab7f91f62a73f4573ac56143cfcacbbbd119ac6fc3b0be595efc1b5073629a",
+      "size": 55199,
+      "url": "https://github.com/wandapp/wandapp.github.io/releases/download/core-v0.4.8/wand-web-0.4.8.tar.gz"
     },
-    "build": 202611101749,
+    "build": 202611101752,
     "speaks": {
       "major": 1,
       "maxMinor": 0,
       "minMinor": 0
     },
-    "version": "0.4.7"
+    "version": "0.4.8"
   }
 }
