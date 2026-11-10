@@ -16,6 +16,13 @@ for (const file of [
   "ios",
 ])
   await cp(file, `dist/${file}`, { recursive: true });
+// Signed Core update feeds (core/stable, core/beta), read by hosts.
+try {
+  await access("core");
+  await cp("core", "dist/core", { recursive: true });
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
 for (const installer of ["install.sh", "install-macos.sh", "install-linux.sh"]) {
   try {
     await access(installer);

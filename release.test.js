@@ -35,15 +35,16 @@ test("unpublished and published manifests remain distinct", () => {
   assert.throws(() => validateRelease(value));
 });
 test("beta and stable downloads stay in their own release tags", () => {
-  assert.equal(validateRelease(source).beta.build, 16);
+  const build = source.beta.build;
+  assert.equal(validateRelease(source).beta.build, build);
   for (const [field, replacement] of [
     ["url", source.macos.url],
-    ["url", source.beta.url.replace("-b16", "-b17")],
+    ["url", source.beta.url.replace(`-b${build}`, `-b${build + 1}`)],
     ["url", source.beta.url.replace("github.com/", "other@github.com/")],
     ["url", source.beta.url.replace(".dmg", ".zip")],
     ["build", 0],
-    ["build", 16.5],
-    ["build", "16"],
+    ["build", build + 0.5],
+    ["build", String(build)],
     ["available", "true"],
     ["version", "01.4.0"],
   ]) {
