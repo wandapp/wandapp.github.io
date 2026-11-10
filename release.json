@@ -2,9 +2,9 @@
   "schema": 1,
   "macos": {
     "available": true,
-    "version": "0.4.1",
-    "build": 202611101910,
-    "url": "https://github.com/wandapp/wandapp.github.io/releases/download/macos-v0.4.1/Wand-macOS-arm64.dmg",
+    "version": "0.5.0",
+    "build": 202611102041,
+    "url": "https://github.com/wandapp/wandapp.github.io/releases/download/macos-v0.5.0/Wand-macOS-arm64.dmg",
     "requirements": "macOS 13 或更高版本 · Apple Silicon",
     "notice": "已通过 Apple 公证。"
   },
