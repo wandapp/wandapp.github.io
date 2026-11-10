@@ -1,9 +1,5 @@
-import { mkdir, rm, cp, readFile, writeFile, access } from "node:fs/promises";
-import { validateRelease } from "../release.js";
-const manifest = validateRelease(
-  JSON.parse(await readFile("release.json", "utf8")),
-);
-if (manifest.installer.available) await access("install.sh");
+import { mkdir, rm, cp, writeFile, access } from "node:fs/promises";
+await access("install.sh");
 await rm("dist", { recursive: true, force: true });
 await mkdir("dist", { recursive: true });
 for (const file of [
@@ -11,11 +7,12 @@ for (const file of [
   "styles.css",
   "main.js",
   "release.js",
-  "release.json",
   "assets",
 ])
   await cp(file, `dist/${file}`, { recursive: true });
-// Signed Core update feeds (core/stable, core/beta), read by hosts.
+// Legacy bridges, still read by already-installed 0.4.x apps (release.json) and hosts (core/<channel>/):
+// kept byte for byte, nothing on the page uses them.
+await cp("release.json", "dist/release.json");
 try {
   await access("core");
   await cp("core", "dist/core", { recursive: true });

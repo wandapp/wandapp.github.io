@@ -26,7 +26,7 @@
       >
       <nav aria-label="主导航">
         <a href="#install">命令行安装</a
-        ><a href="https://github.com/wandapp/wandapp.github.io/releases"
+        ><a href="https://github.com/wandapp/app/releases"
           >版本记录 <span aria-hidden="true">↗</span></a
         >
       </nav>
@@ -40,21 +40,14 @@
             <a
               id="download"
               class="button primary"
-              href="https://github.com/wandapp/wandapp.github.io/releases"
+              href="https://github.com/wandapp/app/releases/latest/download/Wand-macOS-arm64.dmg"
               ><svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4" /></svg
-              ><span id="download-label">查看 macOS 版本</span></a
+              ><span id="download-label">下载 macOS 版</span></a
             >
             <p class="requirements" id="requirements">
               macOS 13 或更高版本 · Apple Silicon
             </p>
-            <p class="release-status" id="release-status" role="status">
-              正在读取版本信息…
-            </p>
-            <div class="beta-channel" id="beta-channel" hidden>
-              <a id="beta-download" aria-describedby="beta-status">下载 Beta</a>
-              <span id="beta-status">未经 Apple 公证</span>
-            </div>
           </div>
           <div class="quick-install" id="install">
             <h2>或用一条命令安装</h2>
@@ -66,7 +59,6 @@
                 id="copy-install"
                 type="button"
                 aria-label="复制 Wand 安装命令"
-                disabled
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <rect x="8" y="8" width="12" height="13" rx="2" />
@@ -76,7 +68,7 @@
                 ><span>复制</span>
               </button>
             </div>
-            <p id="copy-status" class="copy-status" role="status" aria-live="polite">安装包发布后可复制命令。</p>
+            <p id="copy-status" class="copy-status" role="status" aria-live="polite">在终端运行，安装程序会自动完成配置与启动。</p>
           </div>
         </div>
         <figure class="preview">
@@ -123,10 +115,10 @@
       <section class="install wrap" aria-labelledby="install-title">
         <div class="section-intro">
           <h2 id="install-title">安装，然后开始。</h2>
-          <p id="installer-platforms">正在确认支持的平台…</p>
+          <p id="installer-platforms">macOS · Apple Silicon / Linux · ARM64、x64</p>
         </div>
         <div class="install-instructions">
-          <p id="installer-description">安装程序会完成配置，无需额外启动命令。</p>
+          <p id="installer-description">macOS 安装原生客户端并自动启动服务；Linux 在安装终端完成首次账号设置。</p>
           <details>
             <summary>连接已有服务器</summary>
             <p>在远程电脑打开 Wand 网页，点主机栏的加号并复制主机配对码。回到 Mac App，在主机栏点加号粘贴配对；两台电脑须能互相访问。</p>
@@ -139,14 +131,14 @@
             <summary>下载与更新</summary>
             <p>首次安装：打开 DMG，把 Wand 拖到「应用程序」。之后在「设置 → 更新」里检查并安装，不需要再手动下载；用户数据和系统授权会保留。</p>
             <p>正式版通过 Apple 公证。Beta 已签名但未公证，首次打开可能需要在「系统设置 → 隐私与安全性」中选择「仍要打开」。</p>
-            <p>「设置 → 更新」会列出这台 Mac 和每台已连接主机的各个模块（App、Core、终端服务、网页）及其“当前 → 新版本”；有更新时侧栏底部也会提示。开启「接收 Beta 更新」后会同时检查 Beta，只有比当前更新的版本才会提示。版本与校验文件见<a href="https://github.com/wandapp/wandapp.github.io/releases">版本记录</a>。</p>
+            <p>「设置 → 更新」会列出这台 Mac 和每台已连接主机的各个模块（App、Core、终端服务、网页）及其“当前 → 新版本”；有更新时侧栏底部也会提示。开启「接收 Beta 更新」后会同时检查 Beta，只有比当前更新的版本才会提示。版本与校验文件见<a href="https://github.com/wandapp/app/releases">App</a>与<a href="https://github.com/wandapp/core/releases">Core</a>的版本记录。</p>
           </details>
         </div>
       </section>
       <noscript
         ><p class="wrap no-script">
           JavaScript 未启用。请到
-          <a href="https://github.com/wandapp/wandapp.github.io/releases"
+          <a href="https://github.com/wandapp/app/releases"
             >GitHub Releases</a
           >
           查看已发布的下载与安装说明。

@@ -185,32 +185,6 @@ h1 {
   color: var(--muted);
   line-height: 1.6;
 }
-.release-status {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 4px;
-  min-height: 39px;
-  max-width: 340px;
-  line-height: 1.6;
-}
-.beta-channel {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 12px;
-  margin-top: 4px;
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--muted);
-}
-.beta-channel[hidden] {
-  display: none;
-}
-.beta-channel a {
-  font-size: 14px;
-  color: var(--ink);
-  padding-block: 8px;
-}
 .preview-window {
   background: var(--paper);
   box-shadow:
@@ -563,13 +537,6 @@ footer > a:hover {
   }
   .download-group {
     margin-top: 28px;
-  }
-  .release-status {
-    margin-inline: auto;
-    min-height: 24px;
-  }
-  .beta-channel {
-    justify-content: center;
   }
   .preview {
     width: 100%;

@@ -1,24 +1,29 @@
 #!/bin/sh
 # Install the complete signed desktop App and start its automatic service setup.
-# The version comes from the published release.json at run time; nothing is hardcoded here.
+# The version comes from the latest published release.json at run time; nothing is hardcoded here.
 # WAND_RELEASE_URL overrides the release.json location (tests only; file:// is accepted only through it).
 set -eu
 ASSET=Wand-macOS-arm64.dmg
-RELEASE_JSON_URL=${WAND_RELEASE_URL:-https://wandapp.github.io/release.json}
+RELEASE_JSON_URL=${WAND_RELEASE_URL:-https://github.com/wandapp/app/releases/latest/download/release.json}
 fail() { printf '%s\n' "$*" >&2; exit 1; }
 [ "$(uname -s)-$(uname -m)" = Darwin-arm64 ] || fail 'This release requires Apple Silicon macOS 13 or newer.'
 MAJOR=$(sw_vers -productVersion | cut -d. -f1)
 [ "$MAJOR" -ge 13 ] || fail 'macOS 13 or newer is required.'
 
-# Resolve VERSION and the download URL from release.json (plutil ships with macOS).
-resolve_release() { # resolve_release FILE -> sets VERSION BASE
+# Resolve VERSION, the download URL and its sha256 from release.json (plutil ships with macOS).
+# Schema 2: {"schema":2,"version","build","url","sha256","notarized"}. Only a notarized stable release installs here.
+resolve_release() { # resolve_release FILE -> sets VERSION URL SHA
   key() { /usr/bin/plutil -extract "$1" raw -o - "$2" 2>/dev/null; }
-  [ "$(key macos.available "$1")" = true ] || fail 'No macOS release is currently available.'
-  VERSION=$(key macos.version "$1") || fail 'release.json has no macOS version.'
+  [ "$(key schema "$1")" = 2 ] || fail 'Unsupported release.json.'
+  VERSION=$(key version "$1") || fail 'release.json has no version.'
   case "$VERSION" in ''|*[!0-9.]*|.*|*.|*..*) fail 'Invalid release version.' ;; esac
   [ "$(printf '%s' "$VERSION" | awk -F. '{print NF}')" = 3 ] || fail 'Invalid release version.'
-  BASE=https://github.com/wandapp/wandapp.github.io/releases/download/macos-v$VERSION
-  [ "$(key macos.url "$1")" = "$BASE/$ASSET" ] || fail 'Unexpected download URL in release.json.'
+  [ "$(key notarized "$1")" = true ] || fail 'The latest release is not notarized; nothing was installed.'
+  URL=$(key url "$1") || fail 'release.json has no download URL.'
+  [ "$URL" = "https://github.com/wandapp/app/releases/download/v$VERSION/$ASSET" ] || fail 'Unexpected download URL in release.json.'
+  SHA=$(key sha256 "$1") || fail 'release.json has no checksum.'
+  case "$SHA" in ''|*[!a-fA-F0-9]*) fail 'Invalid checksum in release.json.' ;; esac
+  [ "${#SHA}" = 64 ] || fail 'Invalid checksum length.'
 }
 META=$(mktemp -d "${TMPDIR:-/tmp}/wand-release.XXXXXX")
 trap 'rm -rf "$META"' EXIT HUP INT TERM
@@ -34,7 +39,7 @@ else
 fi
 resolve_release "$META/release.json"
 rm -rf "$META"
-if [ "${WAND_PRINT_PLAN:-}" = 1 ]; then printf 'version=%s\nurl=%s/%s\n' "$VERSION" "$BASE" "$ASSET"; exit 0; fi
+if [ "${WAND_PRINT_PLAN:-}" = 1 ]; then printf 'version=%s\nurl=%s\nsha256=%s\n' "$VERSION" "$URL" "$SHA"; exit 0; fi
 DEST=${WAND_APPLICATIONS_DIR:-$HOME/Applications}
 case "$DEST" in /*) ;; *) fail 'Applications directory must be absolute.' ;; esac
 mkdir -p "$DEST"
@@ -47,12 +52,8 @@ cleanup() {
   rmdir "$LOCK"
 }
 trap cleanup EXIT HUP INT TERM
-curl --proto '=https' --tlsv1.2 -fLSs "$BASE/$ASSET" -o "$TEMP/$ASSET"
-curl --proto '=https' --tlsv1.2 -fLSs "$BASE/$ASSET.sha256" -o "$TEMP/checksum"
-HASH=$(awk -v file="$ASSET" '$2 == file && length($1)==64 {print $1}' "$TEMP/checksum")
-case "$HASH" in ''|*[!a-fA-F0-9]*) fail 'Invalid checksum manifest.' ;; esac
-[ "${#HASH}" = 64 ] || fail 'Invalid checksum length.'
-printf '%s  %s\n' "$HASH" "$TEMP/$ASSET" | shasum -a 256 -c -
+curl --proto '=https' --tlsv1.2 -fLSs "$URL" -o "$TEMP/$ASSET"
+printf '%s  %s\n' "$SHA" "$TEMP/$ASSET" | shasum -a 256 -c -
 mkdir "$TEMP/mnt"
 hdiutil attach -nobrowse -readonly -mountpoint "$TEMP/mnt" "$TEMP/$ASSET"
 [ -d "$TEMP/mnt/Wand.app" ] || fail 'Wand.app is missing from the disk image.'

@@ -1,8 +1,6 @@
-import { releasesURL, validateRelease, betaIsNewer, copyCommand } from "./release.js";
+import { copyCommand } from "./release.js";
 
 const byId = (id) => document.getElementById(id);
-const download = byId("download");
-const status = byId("release-status");
 const feedback = byId("copy-status");
 const installCopy = byId("copy-install");
 const copies = [[installCopy, byId("install-command"), feedback]];
@@ -29,44 +27,3 @@ for (const [button, code, copyFeedback] of copies) {
     }
   });
 }
-
-async function loadRelease() {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
-  try {
-    const response = await fetch("./release.json", {
-      signal: controller.signal,
-      cache: "no-cache",
-    });
-    if (!response.ok) throw new Error("Release unavailable");
-    const { macos, installer, beta } = validateRelease(await response.json());
-    byId("requirements").textContent = macos.requirements;
-    byId("installer-platforms").textContent = installer.platforms;
-    byId("installer-description").textContent = installer.description;
-    const betaLink = byId("beta-download");
-    const showBeta = betaIsNewer(macos, beta);
-    byId("beta-channel").hidden = !showBeta;
-    if (showBeta) {
-      betaLink.href = beta.url;
-      byId("beta-status").textContent = `${beta.version} (${beta.build}) · 未经 Apple 公证`;
-    }
-    if (macos.available) {
-      download.href = macos.url;
-      byId("download-label").textContent = "下载正式版";
-      status.textContent = `v${macos.version} · ${macos.notice}`;
-    } else {
-      download.href = releasesURL;
-      status.textContent = "macOS 客户端尚未发布，可前往版本页查看。";
-    }
-    installCopy.disabled = !installer.available;
-    feedback.textContent = installer.available
-      ? "在终端运行，安装程序会自动完成配置与启动。"
-      : "安装包尚未发布，请稍后查看。";
-  } catch {
-    status.textContent = "暂时无法读取版本，请到 GitHub Releases 查看。";
-    feedback.textContent = "未能确认安装版本。请刷新页面，或查看版本记录。";
-  } finally {
-    clearTimeout(timer);
-  }
-}
-loadRelease();

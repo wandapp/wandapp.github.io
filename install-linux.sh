@@ -7,8 +7,8 @@
 # Tests only: WAND_MANIFEST_URL overrides the feed (file:// is accepted only through it),
 # WAND_PLATFORM picks the artifact, WAND_PRINT_PLAN=1 prints the resolved plan and exits.
 set -eu
-MANIFEST_URL=${WAND_MANIFEST_URL:-https://wandapp.github.io/core/stable/manifest.json}
-RELEASE_PREFIX=https://github.com/wandapp/wandapp.github.io/releases/download/core-v
+MANIFEST_URL=${WAND_MANIFEST_URL:-https://github.com/wandapp/core/releases/latest/download/manifest.json}
+RELEASE_PREFIX=https://github.com/wandapp/core/releases/download/v
 fail() { printf '%s\n' "$*" >&2; exit 1; }
 
 # json_field FLAT_JSON KEY KIND -> value of the first KEY (KIND: string|number)
