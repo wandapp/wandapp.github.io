@@ -9,10 +9,7 @@
     "notice": "已通过 Apple 公证。"
   },
   "beta": {
-    "available": true,
-    "version": "0.1.4",
-    "build": 16,
-    "url": "https://github.com/wandapp/wandapp.github.io/releases/download/macos-v0.1.4-b16/Wand-macOS-arm64.dmg"
+    "available": false
   },
   "installer": {
     "available": true,

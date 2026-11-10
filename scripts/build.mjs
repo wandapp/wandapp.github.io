@@ -13,7 +13,6 @@ for (const file of [
   "release.js",
   "release.json",
   "assets",
-  "ios",
 ])
   await cp(file, `dist/${file}`, { recursive: true });
 // Signed Core update feeds (core/stable, core/beta), read by hosts.

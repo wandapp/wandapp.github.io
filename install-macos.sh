@@ -1,13 +1,40 @@
 #!/bin/sh
 # Install the complete signed desktop App and start its automatic service setup.
+# The version comes from the published release.json at run time; nothing is hardcoded here.
+# WAND_RELEASE_URL overrides the release.json location (tests only; file:// is accepted only through it).
 set -eu
-VERSION=0.1.5
-BASE=https://github.com/wandapp/wandapp.github.io/releases/download/macos-v$VERSION
 ASSET=Wand-macOS-arm64.dmg
+RELEASE_JSON_URL=${WAND_RELEASE_URL:-https://wandapp.github.io/release.json}
 fail() { printf '%s\n' "$*" >&2; exit 1; }
 [ "$(uname -s)-$(uname -m)" = Darwin-arm64 ] || fail 'This release requires Apple Silicon macOS 13 or newer.'
 MAJOR=$(sw_vers -productVersion | cut -d. -f1)
 [ "$MAJOR" -ge 13 ] || fail 'macOS 13 or newer is required.'
+
+# Resolve VERSION and the download URL from release.json (plutil ships with macOS).
+resolve_release() { # resolve_release FILE -> sets VERSION BASE
+  key() { /usr/bin/plutil -extract "$1" raw -o - "$2" 2>/dev/null; }
+  [ "$(key macos.available "$1")" = true ] || fail 'No macOS release is currently available.'
+  VERSION=$(key macos.version "$1") || fail 'release.json has no macOS version.'
+  case "$VERSION" in ''|*[!0-9.]*|.*|*.|*..*) fail 'Invalid release version.' ;; esac
+  [ "$(printf '%s' "$VERSION" | awk -F. '{print NF}')" = 3 ] || fail 'Invalid release version.'
+  BASE=https://github.com/wandapp/wandapp.github.io/releases/download/macos-v$VERSION
+  [ "$(key macos.url "$1")" = "$BASE/$ASSET" ] || fail 'Unexpected download URL in release.json.'
+}
+META=$(mktemp -d "${TMPDIR:-/tmp}/wand-release.XXXXXX")
+trap 'rm -rf "$META"' EXIT HUP INT TERM
+case "$RELEASE_JSON_URL" in
+  https://*) PROTO=https ;;
+  file://*) [ -n "${WAND_RELEASE_URL:-}" ] || fail 'Unexpected release location.'; PROTO=file ;;
+  *) fail 'Unexpected release location.' ;;
+esac
+if [ "$PROTO" = https ]; then
+  curl --proto '=https' --tlsv1.2 -fLSs "$RELEASE_JSON_URL" -o "$META/release.json" || fail 'Could not read release.json.'
+else
+  curl -fSs "$RELEASE_JSON_URL" -o "$META/release.json" || fail 'Could not read release.json.'
+fi
+resolve_release "$META/release.json"
+rm -rf "$META"
+if [ "${WAND_PRINT_PLAN:-}" = 1 ]; then printf 'version=%s\nurl=%s/%s\n' "$VERSION" "$BASE" "$ASSET"; exit 0; fi
 DEST=${WAND_APPLICATIONS_DIR:-$HOME/Applications}
 case "$DEST" in /*) ;; *) fail 'Applications directory must be absolute.' ;; esac
 mkdir -p "$DEST"

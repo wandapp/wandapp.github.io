@@ -1,155 +1,112 @@
 #!/bin/sh
-# System installation; Scheduler and gateway retain independent lifecycles.
+# Install Wand Core (sessiond + gatewayd + updater) as systemd services under /opt/wand-core.
+# The signed update feed cannot be verified before the first install: the trust key ships inside
+# the bundle. This script therefore relies on HTTPS plus the sha256 and size in the feed; later
+# updates are verified by the installed updater against the pinned key.
+# Environment: WAND_PORT (default 3210), WAND_SERVICE_USER (default: the invoking user).
+# Tests only: WAND_MANIFEST_URL overrides the feed (file:// is accepted only through it),
+# WAND_PLATFORM picks the artifact, WAND_PRINT_PLAN=1 prints the resolved plan and exits.
 set -eu
-VERSION=0.1.2
-RELEASE=https://github.com/wandapp/wandapp.github.io/releases/download/core-v$VERSION
+MANIFEST_URL=${WAND_MANIFEST_URL:-https://wandapp.github.io/core/stable/manifest.json}
+RELEASE_PREFIX=https://github.com/wandapp/wandapp.github.io/releases/download/core-v
 fail() { printf '%s\n' "$*" >&2; exit 1; }
+
+# json_field FLAT_JSON KEY KIND -> value of the first KEY (KIND: string|number)
+json_field() {
+  if [ "$3" = number ]; then
+    printf '%s' "$1" | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\).*/\\1/p"
+  else
+    printf '%s' "$1" | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p"
+  fi
+}
+
+# resolve_artifact MANIFEST_FILE PLATFORM -> sets ART_URL ART_SHA ART_SIZE or fails
+resolve_artifact() {
+  flat=$(tr -d '\n\r' < "$1")
+  core=$(printf '%s' "$flat" | sed -n 's/.*"core"[[:space:]]*:[[:space:]]*{\(.*\)}[[:space:]]*,[[:space:]]*"issued".*/\1/p')
+  [ -n "$core" ] || core=$(printf '%s' "$flat" | sed -n 's/.*"core"[[:space:]]*:[[:space:]]*{\(.*\)/\1/p')
+  entry=$(printf '%s' "$core" | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*{\\([^}]*\\)}.*/\\1/p")
+  [ -n "$entry" ] || fail "Wand Core is not published for $2 yet; nothing was installed."
+  ART_URL=$(json_field "$entry" url string)
+  ART_SHA=$(json_field "$entry" sha256 string)
+  ART_SIZE=$(json_field "$entry" size number)
+  case "$ART_SHA" in ''|*[!0-9a-fA-F]*) fail 'Invalid checksum in the release feed.' ;; esac
+  [ "${#ART_SHA}" = 64 ] || fail 'Invalid checksum length in the release feed.'
+  [ -n "$ART_SIZE" ] || fail 'Invalid size in the release feed.'
+  name=${ART_URL##*/}
+  ver=${name#wand-core-}; ver=${ver%-"$2".tar.gz}
+  case "$ver" in ''|*[!0-9.]*) fail 'Unexpected download URL in the release feed.' ;; esac
+  [ "$ART_URL" = "$RELEASE_PREFIX$ver/wand-core-$ver-$2.tar.gz" ] || fail 'Unexpected download URL in the release feed.'
+}
+
+fetch_manifest() { # fetch_manifest DEST
+  case "$MANIFEST_URL" in
+    https://*) curl --proto '=https' --tlsv1.2 -fLSs "$MANIFEST_URL" -o "$1" || fail 'Could not read the release feed.' ;;
+    file://*) [ -n "${WAND_MANIFEST_URL:-}" ] || fail 'Unexpected release feed location.'
+      curl -fSs "$MANIFEST_URL" -o "$1" || fail 'Could not read the release feed.' ;;
+    *) fail 'Unexpected release feed location.' ;;
+  esac
+}
+
+case "$(uname -m)" in aarch64|arm64) ARCH=arm64 ;; x86_64|amd64) ARCH=x64 ;; *) ARCH= ;; esac
+PLATFORM=${WAND_PLATFORM:-linux-$ARCH}
+
+if [ "${WAND_PRINT_PLAN:-}" = 1 ]; then
+  command -v curl >/dev/null || fail 'curl is required.'
+  PLAN=$(mktemp -d "${TMPDIR:-/tmp}/wand-plan.XXXXXX")
+  trap 'rm -rf "$PLAN"' EXIT HUP INT TERM
+  fetch_manifest "$PLAN/manifest.json"
+  resolve_artifact "$PLAN/manifest.json" "$PLATFORM"
+  printf 'platform=%s\nurl=%s\nsha256=%s\nsize=%s\n' "$PLATFORM" "$ART_URL" "$ART_SHA" "$ART_SIZE"
+  exit 0
+fi
+
 [ "$(uname -s)" = Linux ] || fail 'Linux is required.'
-case "$(uname -m)" in aarch64|arm64) ARCH=arm64 ;; x86_64|amd64) ARCH=x64 ;; *) fail 'Unsupported CPU architecture.' ;; esac
+[ -n "$ARCH" ] || fail 'Unsupported CPU architecture.'
 # Fail before privilege escalation, account creation or installation mutations.
 GLIBC=$(getconf GNU_LIBC_VERSION 2>/dev/null) || fail 'Wand requires glibc 2.36 or newer; musl systems are unsupported.'
 printf '%s\n' "$GLIBC" | awk '$1 == "glibc" { split($2,v,"."); if (v[1] > 2 || (v[1] == 2 && v[2] >= 36)) ok=1 } END {exit !ok}' || fail "Wand requires glibc 2.36 or newer (found: $GLIBC)."
+[ -d /run/systemd/system ] || fail 'This installer requires a booted systemd host.'
 # The unified entry downloads this file before invoking it, so sudo never consumes
-# a pipe containing the installer as password input.
+# a pipe containing the installer as password input. Everything below runs as root,
+# so the downloaded bundle is never writable by a normal user while it is installed.
 if [ "$(id -u)" != 0 ]; then
   command -v sudo >/dev/null || fail 'sudo is required for system service installation.'
   [ -f "$0" ] || fail 'Save this installer to a file before invoking it directly.'
-  USER_NAME=$(id -un)
-  exec sudo sh "$0" --service-user "$USER_NAME"
+  exec sudo env "WAND_SERVICE_USER=${WAND_SERVICE_USER:-$(id -un)}" "WAND_PORT=${WAND_PORT:-}" "WAND_MANIFEST_URL=${WAND_MANIFEST_URL:-}" sh "$0"
 fi
-USER_NAME=${WAND_SERVICE_USER:-${SUDO_USER:-wand}}
-if [ "${1:-}" = --service-user ]; then USER_NAME=${2:?Missing service user}; fi
-case "$USER_NAME" in ''|root|*[!a-zA-Z0-9_-]*) fail 'A non-root service user is required.' ;; esac
-[ -d /run/systemd/system ] || fail 'This installer requires a booted systemd host.'
-for command in curl tar sha256sum systemctl getent runuser; do command -v "$command" >/dev/null || fail "Missing required command: $command"; done
-# Prefix permits package validation in a disposable filesystem; production is /opt.
-ROOT=${WAND_LINUX_INSTALL_ROOT:-/opt/wand}
-UNITS=${WAND_SYSTEMD_UNIT_DIR:-/etc/systemd/system}
-case "$ROOT:$UNITS" in *[!a-zA-Z0-9_./:-]*) fail 'Invalid installation directory.' ;; /*:/*) ;; *) fail 'Installation directories must be absolute.' ;; esac
-umask 022
-mkdir -p "$ROOT/versions" "$UNITS"
-LOCK=$ROOT/install.lock
-mkdir "$LOCK" 2>/dev/null || fail "Another installation is active: $LOCK"
-TEMP=$(mktemp -d "$ROOT/download.XXXXXX")
-cleanup() { rm -rf "$TEMP"; rmdir "$LOCK"; }
-trap cleanup EXIT HUP INT TERM
-ASSET=wand-core-linux-$ARCH.tar.gz
-curl --proto '=https' --tlsv1.2 -fLSs "$RELEASE/$ASSET" -o "$TEMP/$ASSET"
-curl --proto '=https' --tlsv1.2 -fLSs "$RELEASE/$ASSET.sha256" -o "$TEMP/checksum"
-HASH=$(awk -v file="$ASSET" '$2 == file && length($1)==64 {print $1}' "$TEMP/checksum")
-case "$HASH" in ''|*[!a-fA-F0-9]*) fail 'Invalid checksum manifest.' ;; esac
-[ "${#HASH}" = 64 ] || fail 'Invalid checksum length.'
-printf '%s  %s\n' "$HASH" "$TEMP/$ASSET" | sha256sum -c -
-tar -tzf "$TEMP/$ASSET" > "$TEMP/entries"
-awk '/^\// || /(^|\/)\.\.($|\/)/ || !/^wand-core(\/|$)/ {bad=1} END {exit bad}' "$TEMP/entries" || fail 'Unsafe archive paths.'
-tar -xzf "$TEMP/$ASSET" -C "$TEMP" --no-same-owner
-BUNDLE=$TEMP/wand-core
-[ "$(cat "$BUNDLE/VERSION")" = "$VERSION" ] || fail 'Bundle version mismatch.'
-"$BUNDLE/bin/wand-scheduler" --check-runtime
-if ! id "$USER_NAME" >/dev/null 2>&1; then
-  [ "$USER_NAME" = wand ] || fail 'Requested service user does not exist.'
-  useradd --system --create-home --home-dir /var/lib/wand --shell /bin/bash wand
+USER_NAME=${WAND_SERVICE_USER:-${SUDO_USER:-}}
+case "$USER_NAME" in root|*[!a-zA-Z0-9_-]*) fail 'A non-root service user is required.' ;; esac
+PORT=${WAND_PORT:-}
+case "$PORT" in *[!0-9]*) fail 'WAND_PORT must be a number.' ;; esac
+for command in curl tar awk sed tr wc systemctl; do command -v "$command" >/dev/null || fail "Missing required command: $command"; done
+if command -v sha256sum >/dev/null; then sha() { sha256sum "$1" | awk '{print $1}'; }
+elif command -v shasum >/dev/null; then sha() { shasum -a 256 "$1" | awk '{print $1}'; }
+else fail 'Missing required command: sha256sum'; fi
+
+TEMP=$(mktemp -d "${TMPDIR:-/tmp}/wand-install.XXXXXX")
+trap 'rm -rf "$TEMP"' EXIT HUP INT TERM
+fetch_manifest "$TEMP/manifest.json"
+resolve_artifact "$TEMP/manifest.json" "$PLATFORM"
+
+ARCHIVE=$TEMP/core.tar.gz
+curl --proto '=https' --tlsv1.2 -fLSs "$ART_URL" -o "$ARCHIVE" || fail 'Could not download Wand Core.'
+[ "$(wc -c < "$ARCHIVE" | tr -d ' ')" = "$ART_SIZE" ] || fail 'Downloaded size does not match the release feed.'
+[ "$(sha "$ARCHIVE")" = "$(printf '%s' "$ART_SHA" | tr 'A-F' 'a-f')" ] || fail 'Checksum mismatch; nothing was installed.'
+tar -tzf "$ARCHIVE" > "$TEMP/entries" || fail 'Unreadable archive.'
+awk '/^\// || /(^|\/)\.\.($|\/)/ || !/^(\.\/)?wand-core(\/|$)/ {bad=1} END {exit bad}' "$TEMP/entries" || fail 'Unsafe archive paths.'
+mkdir "$TEMP/extract"
+tar -xzf "$ARCHIVE" -C "$TEMP/extract" --no-same-owner
+BUNDLE=$TEMP/extract/wand-core
+[ -f "$BUNDLE/install.sh" ] && [ -d "$BUNDLE/bin" ] || fail 'Unexpected bundle layout; nothing was installed.'
+
+if [ -e /opt/wand/current ] || systemctl list-unit-files wand-scheduler.service 2>/dev/null | grep -q wand-scheduler; then
+  printf '%s\n' 'An older Wand install (wand-scheduler / wand-server) is left as is; both default to port 3210, so stop the old services first or set WAND_PORT to another port.'
 fi
-[ "$(id -u "$USER_NAME")" != 0 ] || fail 'Service account must not have UID 0.'
-USER_HOME=$(getent passwd "$USER_NAME" | cut -d: -f6)
-USER_GROUP=$(id -gn "$USER_NAME")
-case "$USER_HOME" in /*) ;; *) fail 'Service home must be absolute.' ;; esac
-case "$USER_HOME" in *[!a-zA-Z0-9_./-]*) fail 'Service home contains unsupported systemd characters.' ;; esac
-DEST=$ROOT/versions/$VERSION-$ARCH
-if [ -e "$DEST" ]; then
-  [ -f "$DEST/.archive-sha256" ] && [ "$(cat "$DEST/.archive-sha256")" = "$HASH" ] || fail 'Existing version content differs; nothing replaced.'
-else
-  printf '%s\n' "$HASH" > "$BUNDLE/.archive-sha256"
-  mv "$BUNDLE" "$DEST"
-fi
-# Refuse to adopt an unmanaged running scheduler or gateway. Updates keep existing
-# services on their old version; systemd does not restart active units on start.
-for unit in wand-scheduler.service wand-server.service; do
-  if [ -f "$UNITS/$unit" ] && ! head -1 "$UNITS/$unit" | grep -qx '# Managed by Wand installer'; then
-    fail "Unmanaged system service $unit exists; it was not overwritten."
-  fi
-done
-if [ -S "$USER_HOME/.new-wand/scheduler.sock" ] && ! systemctl is-active --quiet wand-scheduler.service; then
-  fail 'An unmanaged Scheduler exists. Existing sessions were preserved; migrate after draining them.'
-fi
-install -d -m 0700 -o "$USER_NAME" -g "$USER_GROUP" "$USER_HOME/.new-wand"
-if [ -e "$ROOT/current" ] && [ ! -L "$ROOT/current" ]; then fail 'Current path is not a managed symlink.'; fi
-ln -s "versions/$VERSION-$ARCH" "$TEMP/current"
-mv -Tf "$TEMP/current" "$ROOT/current"
-cat > "$TEMP/wand-scheduler.service" <<UNIT
-# Managed by Wand installer
-[Unit]
-Description=Wand terminal scheduler
-After=network.target
-[Service]
-Type=exec
-User=$USER_NAME
-Group=$USER_GROUP
-Environment=HOME=$USER_HOME
-Environment=SHELL=/bin/bash
-Environment=WAND_SCHEDULER_DIR=$USER_HOME/.new-wand
-WorkingDirectory=$USER_HOME
-ExecStart=$DEST/bin/wand-scheduler
-Restart=on-failure
-RestartSec=3
-UMask=0077
-[Install]
-WantedBy=multi-user.target
-UNIT
-cat > "$TEMP/wand-server.service" <<UNIT
-# Managed by Wand installer
-[Unit]
-Description=Wand HTTP and WebSocket gateway
-Wants=wand-scheduler.service
-After=network.target wand-scheduler.service
-[Service]
-Type=exec
-User=$USER_NAME
-Group=$USER_GROUP
-Environment=HOME=$USER_HOME
-Environment=WAND_SCHEDULER_DIR=$USER_HOME/.new-wand
-Environment=FRONTEND_DIST=$DEST/web
-WorkingDirectory=$USER_HOME
-ExecStart=$DEST/bin/wand-server
-KillSignal=SIGINT
-TimeoutStopSec=30s
-SendSIGKILL=no
-Restart=on-failure
-RestartSec=3
-UMask=0077
-[Install]
-WantedBy=multi-user.target
-UNIT
-install -m 0644 "$TEMP/wand-scheduler.service" "$UNITS/wand-scheduler.service"
-install -m 0644 "$TEMP/wand-server.service" "$UNITS/wand-server.service"
-systemctl daemon-reload
-systemctl enable --now wand-scheduler.service wand-server.service
-systemctl is-enabled --quiet wand-scheduler.service
-systemctl is-enabled --quiet wand-server.service
-# Type=exec guarantees exec succeeded; check the gateway actually became healthy.
-attempt=0
-until curl -fSs --max-time 2 http://127.0.0.1:3210/api/health > "$TEMP/health"; do
-  attempt=$((attempt + 1))
-  [ "$attempt" -lt 15 ] || fail 'Installed services did not become healthy; inspect journalctl -u wand-server.'
-  sleep 1
-done
-systemctl is-active --quiet wand-scheduler.service
-systemctl is-active --quiet wand-server.service
-printf 'Wand is installed and enabled at boot for user %s.\n' "$USER_NAME"
-# Initial setup runs against loopback on this host; SSH forwarding is unnecessary.
-setup_status=0
-"$DEST/wand-core" setup --check || setup_status=$?
-case "$setup_status" in
-  0) ;;
-  2)
-    if ( : </dev/tty ) 2>/dev/null; then
-      "$DEST/wand-core" setup </dev/tty
-    else
-      printf 'Services are running; account setup is still required.\n'
-      printf 'From an interactive SSH terminal run: %s/wand-core setup\n' "$DEST"
-    fi
-    ;;
-  *) fail 'Unable to check account setup; inspect the running gateway.' ;;
-esac
-printf 'Open this server’s LAN address on port 3210 in a browser.\n' 
-printf 'Existing running services are not restarted by updates. Installed version: %s.\n' "$VERSION"
+
+set -- --prefix /opt/wand-core
+[ -z "$USER_NAME" ] || set -- "$@" --user "$USER_NAME"
+[ -z "$PORT" ] || set -- "$@" --port "$PORT"
+# Piped installs (curl | sh) have no terminal on stdin; the first-account prompt reads the controlling terminal.
+if [ ! -t 0 ] && ( : </dev/tty ) 2>/dev/null; then sh "$BUNDLE/install.sh" "$@" </dev/tty
+else sh "$BUNDLE/install.sh" "$@"; fi

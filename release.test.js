@@ -5,6 +5,7 @@ import { validateRelease, copyCommand, installCommand } from "./release.js";
 const source = JSON.parse(
   await readFile(new URL("./release.json", import.meta.url)),
 );
+const stable = source;
 
 test("only release assets and the established installer commands are accepted", () => {
   assert.equal(validateRelease(source), source);
@@ -35,7 +36,14 @@ test("unpublished and published manifests remain distinct", () => {
   assert.throws(() => validateRelease(value));
 });
 test("beta and stable downloads stay in their own release tags", () => {
-  const build = source.beta.build;
+  const build = 202611110000;
+  const source = structuredClone(stable);
+  source.beta = {
+    available: true,
+    version: "0.4.2",
+    build,
+    url: `https://github.com/wandapp/wandapp.github.io/releases/download/macos-v0.4.2-b${build}/Wand-macOS-arm64.dmg`,
+  };
   assert.equal(validateRelease(source).beta.build, build);
   for (const [field, replacement] of [
     ["url", source.macos.url],
