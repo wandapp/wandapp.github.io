@@ -54,3 +54,12 @@ export async function copyCommand(
   if (!clipboard?.writeText) throw new Error("Clipboard unavailable");
   await clipboard.writeText(text);
 }
+
+// A Beta is only advertised while it is newer than the stable release, by (version, build).
+export function betaIsNewer(macos, beta) {
+  if (!beta?.available) return false;
+  const key = (r) => [...r.version.split(".").map(Number), r.build ?? 0];
+  const [a, b] = [key(beta), key(macos)];
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] > b[i];
+  return false;
+}

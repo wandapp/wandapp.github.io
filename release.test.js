@@ -82,3 +82,14 @@ test("the page exposes one automatic installation command without a manual start
   assert.equal(html.split(installCommand).length - 1, 1);
   assert.doesNotMatch(html, /wand-core start|install-app\.sh|先安装 Core|不会自动打开/);
 });
+
+test("a Beta is advertised only while it is newer than stable", async () => {
+  const { betaIsNewer } = await import("./release.js");
+  const stable = { version: "0.4.1", build: 202611101910 };
+  assert.equal(betaIsNewer(stable, { available: true, version: "0.1.4", build: 16 }), false);
+  assert.equal(betaIsNewer(stable, { available: true, version: "0.4.1", build: 202611101910 }), false);
+  assert.equal(betaIsNewer(stable, { available: true, version: "0.4.1", build: 202611110000 }), true);
+  assert.equal(betaIsNewer(stable, { available: true, version: "0.5.0", build: 1 }), true);
+  assert.equal(betaIsNewer(stable, { available: false }), false);
+  assert.equal(betaIsNewer(stable, undefined), false);
+});

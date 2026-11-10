@@ -1,4 +1,4 @@
-import { releasesURL, validateRelease, copyCommand } from "./release.js";
+import { releasesURL, validateRelease, betaIsNewer, copyCommand } from "./release.js";
 
 const byId = (id) => document.getElementById(id);
 const download = byId("download");
@@ -44,8 +44,9 @@ async function loadRelease() {
     byId("installer-platforms").textContent = installer.platforms;
     byId("installer-description").textContent = installer.description;
     const betaLink = byId("beta-download");
-    byId("beta-channel").hidden = !beta?.available;
-    if (beta?.available) {
+    const showBeta = betaIsNewer(macos, beta);
+    byId("beta-channel").hidden = !showBeta;
+    if (showBeta) {
       betaLink.href = beta.url;
       byId("beta-status").textContent = `${beta.version} (${beta.build}) · 未经 Apple 公证`;
     }
