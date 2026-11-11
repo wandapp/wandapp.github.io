@@ -87,7 +87,7 @@ components:
 
 **Creative North Star: "Wand, with the cleanliness of Linear and Apple Notes"**
 
-The page is the install command. The double-cat mark (112–160px, 15vh) over the "Wand II" wordmark (ASCII II, as the apps show it) and one line of copy, then one row of four highlights (端到端加密 · 终端常驻 · 多台主机 · 原生 Mac App, each a bold term and one short line, divided by hairlines), then a dark command bar with a 正式版 / Beta switch; the dmg download is a quiet secondary link under a hairline. Below, a real screenshot of the web client (light and dark via `<picture>`, captioned 网页端) rests on a light stage band and starts inside the first screen at 1440×900, then a hairline definition list answers the follow-up questions, end-to-end encryption first. Existing double-cat mark, system typography, ink on paper; a full dark scheme follows the system setting.
+The page is the install command. The "Wand II" wordmark, whose II is the double-cat mark itself (cap height, on the baseline, a word space after Wand; the same lockup as the apps), and one line of copy, then one row of four highlights (端到端加密 · 终端常驻 · 多台主机 · 原生 Mac App, each a bold term and one short line, divided by hairlines), then a dark command bar with a 正式版 / Beta switch; the dmg download is a quiet secondary link under a hairline. Below, a real screenshot of the web client (light and dark via `<picture>`, captioned 网页端) rests on a light stage band and starts inside the first screen at 1440×900, then a hairline definition list answers the follow-up questions, end-to-end encryption first. Existing double-cat mark, system typography, ink on paper; a full dark scheme follows the system setting.
 
 ## Colors
 
@@ -117,7 +117,7 @@ One authored moment: the channel switch thumb slides with an exponential ease-ou
 
 ## Do's and Don'ts
 
-- Do preserve the double-cat mark (drawn via CSS mask so it takes the ink of either scheme).
+- Do preserve the double-cat mark (drawn via CSS mask so it takes the ink of either scheme). It is the II of Wand II everywhere: header, hero and footer; never a separate mark beside or above a typed II.
 - Do keep every claim on the page true to what the installers do.
 - Don't add slogans, eyebrows, badges or feature cards; the four-item highlight row is the only feature list, text on hairlines.
 - Screenshots are real captures (`assets/screen-{light,dark}.webp`, 2560×1440) with no private hosts, paths or session content; no drawn window chrome around them.

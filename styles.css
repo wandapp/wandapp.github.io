@@ -118,14 +118,27 @@ code {
   top: 12px;
 }
 
-/* The double-cat mark, drawn from the one SVG in the ink of wherever it sits. */
-.mark {
+/* The double-cat mark is the "II" of Wand II: cap height, standing on the baseline, a word space after
+   "Wand", in the ink of wherever it sits. The mask is scaled past the SVG's 40-unit padding. */
+.ii {
+  position: relative;
   display: inline-block;
-  height: 30px;
+  height: 0.705em;
+  aspect-ratio: 351 / 547;
+  margin-left: 0.22em;
+  vertical-align: baseline;
   background: currentColor;
-  aspect-ratio: 431 / 627;
-  -webkit-mask: url("./assets/brand-mark.svg") center / contain no-repeat;
-  mask: url("./assets/brand-mark.svg") center / contain no-repeat;
+  -webkit-mask: url("./assets/brand-mark.svg") center / 122.8% 114.6% no-repeat;
+  mask: url("./assets/brand-mark.svg") center / 122.8% 114.6% no-repeat;
+}
+/* Read and copied as "Wand II". */
+.ii-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .site-header {
@@ -135,9 +148,7 @@ code {
   justify-content: space-between;
 }
 .brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  display: inline-block;
   text-decoration: none;
   font-size: 18px;
   font-weight: 650;
@@ -168,16 +179,12 @@ code {
 
 /* Hero: the install command is the page. */
 .hero {
-  padding-top: clamp(24px, 5vh, 64px);
+  padding-top: clamp(40px, 9vh, 96px);
   padding-bottom: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-}
-.hero-mark {
-  height: clamp(112px, 15vh, 160px);
-  margin-bottom: 24px;
 }
 .hero h1 {
   font-size: clamp(56px, 8vw, 96px);
@@ -472,8 +479,8 @@ code {
   font-size: 15px;
   color: var(--muted);
 }
-.brand.small .mark {
-  height: 22px;
+.brand .ii {
+  height: 0.78em;
 }
 
 @media (max-width: 900px) {
@@ -525,9 +532,6 @@ code {
     justify-content: center;
     padding: 0;
   }
-  .hero-mark {
-    height: 104px;
-  }
   .highlights li {
     padding: 2px 12px;
   }
@@ -557,7 +561,7 @@ code {
   .shot {
     border: 1px solid CanvasText;
   }
-  .mark {
+  .ii {
     background: CanvasText;
   }
 }
