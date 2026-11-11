@@ -12,6 +12,6 @@ main() {
   script=$(mktemp "${TMPDIR:-/tmp}/wand-install.XXXXXX")
   trap 'rm -f "$script"' EXIT HUP INT TERM
   curl --proto '=https' --tlsv1.2 --fail --location --silent --show-error "https://wandapp.github.io/$installer" -o "$script"
-  sh "$script"
+  sh "$script" "$@"
 }
 main "$@"

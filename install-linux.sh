@@ -3,13 +3,22 @@
 # The signed update feed cannot be verified before the first install: the trust key ships inside
 # the bundle. This script therefore relies on HTTPS plus the sha256 and size in the feed; later
 # updates are verified by the installed updater against the pinned key.
-# Environment: WAND_PORT (default 3210), WAND_SERVICE_USER (default: the invoking user).
+# --beta installs the newest build, stable or Beta, and keeps the Core on the Beta channel; without it, stable.
+# Environment: WAND_PORT (default: the existing install's port, else 3210), WAND_SERVICE_USER (default: the invoking user).
 # Tests only: WAND_MANIFEST_URL overrides the feed (file:// is accepted only through it),
 # WAND_PLATFORM picks the artifact, WAND_PRINT_PLAN=1 prints the resolved plan and exits.
 set -eu
-MANIFEST_URL=${WAND_MANIFEST_URL:-https://github.com/wandapp/core/releases/latest/download/manifest.json}
-RELEASE_PREFIX=https://github.com/wandapp/core/releases/download/v
 fail() { printf '%s\n' "$*" >&2; exit 1; }
+CHANNEL=stable
+for arg in "$@"; do
+  case "$arg" in
+    --beta) CHANNEL=beta ;;
+    *) fail "Unknown option: $arg (only --beta is supported)" ;;
+  esac
+done
+if [ "$CHANNEL" = beta ]; then MANIFEST_URL=${WAND_MANIFEST_URL:-https://github.com/wandapp/core/releases/download/beta/manifest.json}
+else MANIFEST_URL=${WAND_MANIFEST_URL:-https://github.com/wandapp/core/releases/latest/download/manifest.json}; fi
+RELEASE_PREFIX=https://github.com/wandapp/core/releases/download/v
 
 # json_field FLAT_JSON KEY KIND -> value of the first KEY (KIND: string|number)
 json_field() {
@@ -35,7 +44,7 @@ resolve_artifact() {
   [ -n "$ART_SIZE" ] || fail 'Invalid size in the release feed.'
   name=${ART_URL##*/}
   ver=${name#wand-core-}; ver=${ver%-"$2".tar.gz}
-  case "$ver" in ''|*[!0-9.]*) fail 'Unexpected download URL in the release feed.' ;; esac
+  printf '%s' "$ver" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$' || fail 'Unexpected download URL in the release feed.'
   [ "$ART_URL" = "$RELEASE_PREFIX$ver/wand-core-$ver-$2.tar.gz" ] || fail 'Unexpected download URL in the release feed.'
 }
 
@@ -57,7 +66,7 @@ if [ "${WAND_PRINT_PLAN:-}" = 1 ]; then
   trap 'rm -rf "$PLAN"' EXIT HUP INT TERM
   fetch_manifest "$PLAN/manifest.json"
   resolve_artifact "$PLAN/manifest.json" "$PLATFORM"
-  printf 'platform=%s\nurl=%s\nsha256=%s\nsize=%s\n' "$PLATFORM" "$ART_URL" "$ART_SHA" "$ART_SIZE"
+  printf 'channel=%s\nplatform=%s\nurl=%s\nsha256=%s\nsize=%s\n' "$CHANNEL" "$PLATFORM" "$ART_URL" "$ART_SHA" "$ART_SIZE"
   exit 0
 fi
 
@@ -73,7 +82,7 @@ printf '%s\n' "$GLIBC" | awk '$1 == "glibc" { split($2,v,"."); if (v[1] > 2 || (
 if [ "$(id -u)" != 0 ]; then
   command -v sudo >/dev/null || fail 'sudo is required for system service installation.'
   [ -f "$0" ] || fail 'Save this installer to a file before invoking it directly.'
-  exec sudo env "WAND_SERVICE_USER=${WAND_SERVICE_USER:-$(id -un)}" "WAND_PORT=${WAND_PORT:-}" "WAND_MANIFEST_URL=${WAND_MANIFEST_URL:-}" sh "$0"
+  exec sudo env "WAND_SERVICE_USER=${WAND_SERVICE_USER:-$(id -un)}" "WAND_PORT=${WAND_PORT:-}" "WAND_MANIFEST_URL=${WAND_MANIFEST_URL:-}" sh "$0" "$@"
 fi
 USER_NAME=${WAND_SERVICE_USER:-${SUDO_USER:-}}
 case "$USER_NAME" in root|*[!a-zA-Z0-9_-]*) fail 'A non-root service user is required.' ;; esac
@@ -117,3 +126,6 @@ set -- --prefix /opt/wand-core
 # Piped installs (curl | sh) have no terminal on stdin; the first-account prompt reads the controlling terminal.
 if [ ! -t 0 ] && ( : </dev/tty ) 2>/dev/null; then sh "$BUNDLE/install.sh" "$@" </dev/tty
 else sh "$BUNDLE/install.sh" "$@"; fi
+# The channel later updates follow; the updater runs as the service user, which owns state/.
+printf '%s' "$CHANNEL" > /opt/wand-core/state/channel
+[ -z "$USER_NAME" ] || chown "$USER_NAME": /opt/wand-core/state/channel

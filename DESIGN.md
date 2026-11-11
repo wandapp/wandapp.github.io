@@ -1,57 +1,84 @@
 ---
 name: Wand website
-description: Existing Wand identity for downloads and installation
+description: Install-first Wand page in the existing ink-and-paper identity, light and dark
 colors:
   paper: "#fff"
   ink: "#171719"
-  muted: "#66666e"
-  line: "#e5e5e8"
-  surface: "#f6f6f7"
-  accent: "#225c44"
-  scroll-thumb: "#aaaab2"
-  scroll-track: "#f6f6f7"
-  scroll-hover: "#777780"
+  ink-2: "#3a3a40"
+  muted: "#6b6b73"
+  faint: "#74747c"
+  line: "#e7e7ea"
+  surface: "#f5f5f6"
+  stage: "#f1f1f3"
+  accent: "#1f6b4b"
   focus: "#245dc2"
+  selection: "#d6e4f7"
+  cmd-bg: "#161618"
+  cmd-ink: "#f2f2f3"
+  cmd-muted: "#8d8d96"
+  cmd-line: "#2a2a2e"
+  copied: "#6fd3a3"
+  traffic-red: "#ff5f57"
+  traffic-yellow: "#febc2e"
+  traffic-green: "#28c840"
+  dark-paper: "#111113"
+  dark-ink: "#ededef"
+  dark-muted: "#9a9aa3"
+  dark-faint: "#8a8a93"
+  dark-line: "#26262a"
+  dark-accent: "#5fc596"
 typography:
   display:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
-    fontSize: "clamp(42px,4.5vw,62px)"
-    fontWeight: 650
-    lineHeight: 1.12
-    letterSpacing: "-0.04em"
+    fontFamily: "-apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Segoe UI\", sans-serif"
+    fontSize: "clamp(56px, 8vw, 96px)"
+    fontWeight: 700
+    lineHeight: 1
+    letterSpacing: "-0.045em"
+  lead:
+    fontFamily: "-apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Segoe UI\", sans-serif"
+    fontSize: "clamp(18px, 2vw, 21px)"
+    lineHeight: 1.6
   headline:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
-    fontSize: "32px"
-    fontWeight: 600
-    lineHeight: 1.3
+    fontFamily: "-apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Segoe UI\", sans-serif"
+    fontSize: "28px"
+    fontWeight: 650
     letterSpacing: "-0.03em"
   body:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
-    fontSize: "16px"
+    fontFamily: "-apple-system, BlinkMacSystemFont, \"PingFang SC\", \"Segoe UI\", sans-serif"
+    fontSize: "15px"
     lineHeight: 1.8
+  small:
+    fontSize: "13px"
+  label:
+    fontSize: "11px"
+  nav:
+    fontSize: "14px"
+  brand:
+    fontSize: "17px"
   code:
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace"
-    fontSize: "12px"
-    lineHeight: 1.8
+    fontFamily: "ui-monospace, \"SF Mono\", SFMono-Regular, Menlo, monospace"
+    fontSize: "15px"
 rounded:
+  compact: "6px"
+  row: "7px"
   control: "8px"
-  compact: "5px"
-  preview: "12px"
+  segment: "9px"
+  command: "12px"
+  window: "14px"
 spacing:
   small: "8px"
   medium: "16px"
   gutter: "32px"
-  section-gap: "56px"
+  section: "112px"
 components:
-  button-primary:
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.paper}"
-    rounded: "{rounded.control}"
-    padding: "12px 20px"
-  command-box:
+  command:
+    backgroundColor: "{colors.cmd-bg}"
+    textColor: "{colors.cmd-ink}"
+    rounded: "{rounded.command}"
+    padding: "8px 8px 8px 20px"
+  channel-switch:
     backgroundColor: "{colors.surface}"
-    rounded: "{rounded.control}"
-    padding: "8px 8px 8px 16px"
+    rounded: "{rounded.segment}"
 ---
 
 # Design System: Wand website
@@ -60,52 +87,37 @@ components:
 
 **Creative North Star: "Wand, with the cleanliness of Linear and Apple Notes"**
 
-The existing Wand double-cat identity on a white canvas, with restrained system typography and a black primary action. The user’s Linear / Apple Notes references establish cleanliness and brevity; no new visual identity is introduced.
-
-**Key Characteristics:**
-- Existing double-cat identity.
-- Quiet white surfaces and clear type hierarchy.
-- Short copy and visible installation actions.
+The page is the install command. A large wordmark and one line of copy sit over a dark command bar with a 正式版 / Beta switch; the dmg download is a quiet secondary link under a hairline. Below, an illustrated app window rests on a light stage band, then a hairline definition list answers the four follow-up questions. Existing double-cat mark, system typography, ink on paper; a full dark scheme follows the system setting.
 
 ## Colors
 
-Runtime source of truth: `styles.css :root`; the frontmatter records its actual values. Ink and paper form the primary action. Muted text, surface and line organize secondary content. The restrained green accent belongs to terminal prompts, connection indicators and summary hover. Focus is blue; scroll-thumb, scroll-track and scroll-hover theme browser scrollbars.
+Runtime source of truth: `styles.css :root` (light) and its `prefers-color-scheme: dark` block; the frontmatter records both. Ink and paper carry text; muted is body copy in the guide, faint is metadata and must keep ≥4.5:1. The command bar is always dark (`cmd-*`) in both schemes. Green accent marks prompts, passing output and connection dots only; focus and terminal paths use blue. Traffic-light colors belong to the window illustration only.
 
 ## Typography
 
-Display and body share the system stack defined above, grounded in the user’s Apple Notes reference. Monospace is reserved for commands and terminal content. The body role describes installation explanatory text; supporting copy uses 12–14px. The hero lead uses 25px/1.65 on desktop, then 22px and 20px at narrower breakpoints. Illustration-only labels use 9–12px and do not carry essential instructions.
+System stack throughout (the user's Apple Notes reference). Monospace only for commands and terminal content. Display is the wordmark only.
 
 ## Layout
 
-The container is 1184px including 32px horizontal padding, giving 1120px content width. Hero and installation use `.88fr 1.12fr` columns with a 56px gap. At 1000px the gap becomes 32px. At 800px sections become a single column, gutters become 24px and the hero centers. At 420px gutters become 20px. Hero vertical padding is 112px on desktop; installation uses 72px above and 88px below. These are observed values, not a newly imposed spacing scale.
+Container 1184px with 32px gutters (20px under 640px). The hero is a centered column; the install block is 736px wide so the Beta command fits one line on desktop. The guide is a `1fr 2.2fr` grid on desktop and a single column under 900px; each row is `140px 1fr`. Under 640px the app sidebar and the `$` prompt hide and the copy button keeps only its icon. Command lines break between words only, except under 400px where the URL may break.
 
 ## Elevation & Depth
 
-Only the illustrative terminal window is lifted: `0 18px 60px #17171918, 0 2px 8px #1717190d`. Installation command surfaces and section separators remain flat. The shadow frames an illustration; it is not a reusable feature-card treatment.
+Two lifted objects: the command bar (short dark shadow) and the app window (layered soft shadow). Everything else is flat on hairlines.
 
-## Shapes
+## Motion
 
-Controls and command surfaces use the control radius; the terminal preview uses the larger preview radius. Copy-button hover surfaces and selected illustrative sessions use the compact radius. Dividers are thin solid lines. The preview clips its window chrome to its rounded boundary.
+One authored moment: the channel switch thumb slides with an exponential ease-out (0.42s). The terminal cursor blinks. Reduced motion removes both.
 
 ## Components
 
-The primary anchor has a 48px minimum height and 204px minimum width, with a 19px authored SVG. Hover darkens to `#37373c`; active links and buttons use opacity `.75`. The background transition is `.16s ease-out`.
-
-Copy buttons have a 44px minimum height, a transparent resting surface, and a surface-line hover fill. Disabled buttons use opacity `.45`. Copy results are announced through a live region with a minimum reserved height; denial selects the exact command for manual copying. At narrow widths the visible copy label is hidden while its accessible name remains.
-
-Navigation is plain text; native details elements expose secondary instructions. The footer contains only the brand and GitHub link. Focusable links, buttons and summaries use a 2px focus outline with 5px offset. Reduced motion disables transitions and smooth scrolling; forced colors preserve explicit outlines and control borders. Commands wrap without horizontal overflow.
-
-The terminal connection preview is explicitly captioned as an illustration. Its compact chrome is not a functional control surface.
+- Channel switch: a radiogroup of two buttons with a sliding thumb; arrow keys switch. `#beta` in the URL opens on Beta and the switch keeps the hash in sync.
+- Command bar: the visible command is rebuilt from `release.js` per channel; copy shows a check for 2.4s and the live status line announces success or selects the text when the clipboard is denied.
+- Guide: `dl` rows on hairlines, never cards.
 
 ## Do's and Don'ts
 
-- Do preserve the existing double-cat mark.
-- Do use placement, hierarchy and whitespace to explain the page.
-- Do keep release availability and recovery messages truthful.
-- Don’t add slogans, secondary badges or decorative marketing copy.
-- Don’t present the terminal illustration as a real application screenshot.
-- Don’t introduce decorative gradients or repetitive feature cards.
-
-### Client command disclosure
-
-The hero presents two installation choices immediately: the macOS download button and one visible `install.sh` command. A single installer availability flag controls copying independently from the download flag. Shared live feedback handles clipboard success and denial. There is no separate Core installation, second script, or manual start command. Supported platforms and installation behavior come from the release manifest. Remote connection and release details remain secondary native disclosures.
+- Do preserve the double-cat mark (drawn via CSS mask so it takes the ink of either scheme).
+- Do keep every claim on the page true to what the installers do.
+- Don't add slogans, eyebrows, badges or feature cards.
+- Don't present the window illustration as a screenshot; it stays captioned 界面示意.

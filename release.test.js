@@ -2,8 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
+  channels,
   copyCommand,
   installCommand,
+  betaInstallCommand,
+  betaDownloadURL,
   downloadURL,
   releasesURL,
 } from "./release.js";
@@ -50,4 +53,21 @@ test("the page exposes one automatic installation command without a manual start
   const html = await read("./index.html");
   assert.equal(html.split(installCommand).length - 1, 1);
   assert.doesNotMatch(html, /wand-core start|install-app\.sh|先安装 Core|不会自动打开/);
+});
+
+test("the Beta channel runs the same installer with --beta and offers the Beta dmg", () => {
+  assert.equal(betaInstallCommand, `${installCommand.replace(/\| sh$/, "| sh -s -- --beta")}`);
+  assert.equal(betaDownloadURL, "https://github.com/wandapp/app/releases/download/beta/Wand-macOS-arm64.dmg");
+  assert.deepEqual(Object.keys(channels), ["stable", "beta"]);
+  assert.equal(channels.stable.command, installCommand);
+  assert.equal(channels.beta.command, betaInstallCommand);
+});
+
+test("every installer accepts --beta and passes it on", async () => {
+  assert.match(await read("./install.sh"), /sh "\$script" "\$@"/);
+  for (const file of ["./install-macos.sh", "./install-linux.sh"]) {
+    const text = await read(file);
+    assert.match(text, /--beta\) CHANNEL=beta/);
+    assert.match(text, /releases\/download\/beta\/manifest\.json/);
+  }
 });
