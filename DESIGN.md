@@ -87,7 +87,7 @@ components:
 
 **Creative North Star: "Wand, with the cleanliness of Linear and Apple Notes"**
 
-The page is the install command. A large wordmark and one line of copy sit over a dark command bar with a 正式版 / Beta switch; the dmg download is a quiet secondary link under a hairline. Below, an illustrated app window rests on a light stage band, then a hairline definition list answers the four follow-up questions. Existing double-cat mark, system typography, ink on paper; a full dark scheme follows the system setting.
+The page is the install command. The double-cat mark (90px) over a large wordmark and one line of copy sit over a dark command bar with a 正式版 / Beta switch; the dmg download is a quiet secondary link under a hairline. Below, an illustrated app window rests on a light stage band, then a hairline definition list answers the follow-up questions, end-to-end encryption first. Existing double-cat mark, system typography, ink on paper; a full dark scheme follows the system setting.
 
 ## Colors
 

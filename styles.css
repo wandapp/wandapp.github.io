@@ -183,6 +183,11 @@ code {
   align-items: center;
   text-align: center;
 }
+.hero-mark {
+  width: 62px;
+  height: 90px;
+  margin-bottom: 28px;
+}
 .hero h1 {
   font-size: clamp(56px, 8vw, 96px);
   font-weight: 700;
@@ -344,6 +349,15 @@ code {
 }
 .alt a:hover {
   text-decoration: underline;
+}
+.alt .secure {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+}
+.guide dl > div:target {
+  scroll-margin-top: 96px;
 }
 .alt svg {
   width: 16px;

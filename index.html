@@ -31,6 +31,7 @@
 
     <main id="main">
       <section class="hero wrap" aria-labelledby="hero-title">
+        <span class="mark hero-mark" aria-hidden="true"></span>
         <h1 id="hero-title">Wand</h1>
         <p class="lead">连接本机或远程电脑，继续你的终端工作。</p>
 
@@ -65,7 +66,10 @@
               id="download"
               href="https://github.com/wandapp/app/releases/latest/download/Wand-macOS-arm64.dmg"
               ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19h14" /></svg>下载 macOS 版</a
-            ><span>macOS 13 或更高版本 · Apple Silicon</span>
+            ><span>macOS 13 或更高版本 · Apple Silicon</span
+            ><a class="secure" href="#e2e"
+              ><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2.5" /><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" /></svg>端到端加密</a
+            >
           </p>
         </div>
       </section>
@@ -121,6 +125,13 @@
       <section class="guide wrap" id="guide" aria-labelledby="guide-title">
         <h2 id="guide-title">说明</h2>
         <dl>
+          <div id="e2e">
+            <dt>端到端加密</dt>
+            <dd>
+              Mac 与 iPhone 和每台主机之间的通讯全部端到端加密（Noise 协议）。配对时交换密钥，之后每条连接都用它验证主机身份并协商新的会话密钥，不依赖
+              https 或证书；中途的路由器、代理都只能看到密文。浏览器访问网页不在此范围内。
+            </dd>
+          </div>
           <div>
             <dt>Mac</dt>
             <dd>安装 Wand App 与后台服务，登录后自动运行。已有的 App 会就地更新，正在运行的终端不会中断。</dd>
