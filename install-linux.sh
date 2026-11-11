@@ -79,6 +79,13 @@ USER_NAME=${WAND_SERVICE_USER:-${SUDO_USER:-}}
 case "$USER_NAME" in root|*[!a-zA-Z0-9_-]*) fail 'A non-root service user is required.' ;; esac
 PORT=${WAND_PORT:-}
 case "$PORT" in *[!0-9]*) fail 'WAND_PORT must be a number.' ;; esac
+# Upgrading keeps the port the existing install uses (the web UI can change it in network.json).
+if [ -z "$PORT" ] && [ -f /opt/wand-core/install.json ]; then
+  OLD=$(tr -d '\n\r' < /opt/wand-core/install.json)
+  OLD_DATA=$(json_field "$OLD" data string)
+  [ -z "$OLD_DATA" ] || [ ! -f "$OLD_DATA/network.json" ] || PORT=$(json_field "$(tr -d '\n\r' < "$OLD_DATA/network.json")" port number)
+  [ -n "$PORT" ] || PORT=$(json_field "$OLD" port number)
+fi
 for command in curl tar awk sed tr wc systemctl; do command -v "$command" >/dev/null || fail "Missing required command: $command"; done
 if command -v sha256sum >/dev/null; then sha() { sha256sum "$1" | awk '{print $1}'; }
 elif command -v shasum >/dev/null; then sha() { shasum -a 256 "$1" | awk '{print $1}'; }

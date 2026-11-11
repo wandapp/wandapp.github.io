@@ -1,7 +1,8 @@
 #!/bin/sh
-# Install the complete signed desktop App and start its automatic service setup.
-# The version comes from the latest published release.json at run time; nothing is hardcoded here.
-# WAND_RELEASE_URL overrides the release.json location (tests only; file:// is accepted only through it).
+# Bring this Mac to the latest stable Wand, whatever is installed now: the Core (services) first, then the
+# signed App. Versions come from the latest published feeds at run time; nothing is hardcoded here.
+# Live terminal sessions survive: the Core installer restarts only the gateway, never sessiond.
+# WAND_RELEASE_URL / WAND_MANIFEST_URL override the App / Core feeds (tests only; file:// only through them).
 set -eu
 ASSET=Wand-macOS-arm64.dmg
 RELEASE_JSON_URL=${WAND_RELEASE_URL:-https://github.com/wandapp/app/releases/latest/download/release.json}
@@ -39,8 +40,65 @@ else
 fi
 resolve_release "$META/release.json"
 rm -rf "$META"
-if [ "${WAND_PRINT_PLAN:-}" = 1 ]; then printf 'version=%s\nurl=%s\nsha256=%s\n' "$VERSION" "$URL" "$SHA"; exit 0; fi
-DEST=${WAND_APPLICATIONS_DIR:-$HOME/Applications}
+
+# The Core: same feed, checks and bundle installer as the Linux script and the updater.
+CORE_FEED=${WAND_MANIFEST_URL:-https://github.com/wandapp/core/releases/latest/download/manifest.json}
+CORE_RELEASES=https://github.com/wandapp/core/releases/download/v
+CORE_PLATFORM=macos-arm64
+CORE_HOME="$HOME/Library/Application Support/Wand/core"
+json() { /usr/bin/plutil -extract "$1" raw -o - "$2" 2>/dev/null; }
+CTEMP=$(mktemp -d "${TMPDIR:-/tmp}/wand-core.XXXXXX")
+trap 'rm -rf "$CTEMP"' EXIT HUP INT TERM
+case "$CORE_FEED" in
+  https://*) curl --proto '=https' --tlsv1.2 -fLSs "$CORE_FEED" -o "$CTEMP/manifest.json" || fail 'Could not read the Core release feed.' ;;
+  file://*) [ -n "${WAND_MANIFEST_URL:-}" ] || fail 'Unexpected Core feed location.'; curl -fSs "$CORE_FEED" -o "$CTEMP/manifest.json" || fail 'Could not read the Core release feed.' ;;
+  *) fail 'Unexpected Core feed location.' ;;
+esac
+CORE_VERSION=$(json core.version "$CTEMP/manifest.json") || fail 'The Core feed has no version.'
+CORE_URL=$(json "core.artifacts.$CORE_PLATFORM.url" "$CTEMP/manifest.json") || fail "Wand Core is not published for $CORE_PLATFORM."
+CORE_SHA=$(json "core.artifacts.$CORE_PLATFORM.sha256" "$CTEMP/manifest.json") || fail 'The Core feed has no checksum.'
+CORE_SIZE=$(json "core.artifacts.$CORE_PLATFORM.size" "$CTEMP/manifest.json") || fail 'The Core feed has no size.'
+case "$CORE_VERSION" in ''|*[!0-9.]*) fail 'Invalid Core version.' ;; esac
+[ "$CORE_URL" = "$CORE_RELEASES$CORE_VERSION/wand-core-$CORE_VERSION-$CORE_PLATFORM.tar.gz" ] || fail 'Unexpected Core download URL.'
+case "$CORE_SHA" in ''|*[!a-fA-F0-9]*) fail 'Invalid Core checksum.' ;; esac
+[ "${#CORE_SHA}" = 64 ] || fail 'Invalid Core checksum length.'
+# Keep the port the existing install uses (the web UI can change it); 3210 otherwise.
+CORE_DATA=$(json data "$CORE_HOME/install.json") || CORE_DATA="$HOME/.wand-core"
+PORT=$(json port "$CORE_DATA/network.json") || PORT=3210
+case "$PORT" in ''|*[!0-9]*) PORT=3210 ;; esac
+RUNNING=
+curl -fsS -m 3 "http://127.0.0.1:$PORT/v1/hello" -o "$CTEMP/hello.json" 2>/dev/null && RUNNING=$(json version "$CTEMP/hello.json") || true
+
+if [ "${WAND_PRINT_PLAN:-}" = 1 ]; then
+  printf 'version=%s\nurl=%s\nsha256=%s\ncore=%s\ncoreUrl=%s\ncoreRunning=%s\nport=%s\n' "$VERSION" "$URL" "$SHA" "$CORE_VERSION" "$CORE_URL" "${RUNNING:-none}" "$PORT"
+  exit 0
+fi
+
+if [ "$RUNNING" = "$CORE_VERSION" ]; then
+  printf 'Wand Core %s is already running on port %s.\n' "$CORE_VERSION" "$PORT"
+else
+  printf 'Updating Wand Core %s -> %s (port %s)...\n' "${RUNNING:-not running}" "$CORE_VERSION" "$PORT"
+  curl --proto '=https' --tlsv1.2 -fLSs "$CORE_URL" -o "$CTEMP/core.tar.gz" || fail 'Could not download Wand Core.'
+  [ "$(wc -c < "$CTEMP/core.tar.gz" | tr -d ' ')" = "$CORE_SIZE" ] || fail 'Downloaded Core size does not match the feed.'
+  printf '%s  %s\n' "$CORE_SHA" "$CTEMP/core.tar.gz" | shasum -a 256 -c - >/dev/null || fail 'Core checksum mismatch; nothing was installed.'
+  tar -tzf "$CTEMP/core.tar.gz" | awk '/^\// || /(^|\/)\.\.($|\/)/ || !/^(\.\/)?wand-core(\/|$)/ {bad=1} END {exit bad}' || fail 'Unsafe Core archive paths.'
+  mkdir "$CTEMP/x" && tar -xzf "$CTEMP/core.tar.gz" -C "$CTEMP/x"
+  xattr -dr com.apple.quarantine "$CTEMP/x" 2>/dev/null || true
+  sh "$CTEMP/x/wand-core/install.sh" --instance core --port "$PORT" </dev/null || fail 'Wand Core installation failed.'
+  for _ in $(seq 1 60); do
+    curl -fsS -m 2 "http://127.0.0.1:$PORT/v1/hello" -o "$CTEMP/hello.json" 2>/dev/null && [ "$(json version "$CTEMP/hello.json")" = "$CORE_VERSION" ] && break
+    sleep 1
+  done
+  [ "$(json version "$CTEMP/hello.json" 2>/dev/null)" = "$CORE_VERSION" ] || fail "Wand Core $CORE_VERSION was installed but is not answering on port $PORT; see $CORE_DATA/gatewayd.log."
+  printf 'Wand Core %s is running on port %s. Open terminal sessions were kept.\n' "$CORE_VERSION" "$PORT"
+fi
+rm -rf "$CTEMP"
+trap - EXIT HUP INT TERM
+
+# The App: update the copy already installed (often /Applications from the disk image), else ~/Applications.
+if [ -n "${WAND_APPLICATIONS_DIR:-}" ]; then DEST=$WAND_APPLICATIONS_DIR
+elif [ -d /Applications/Wand.app ] && [ -w /Applications ]; then DEST=/Applications
+else DEST=$HOME/Applications; fi
 case "$DEST" in /*) ;; *) fail 'Applications directory must be absolute.' ;; esac
 mkdir -p "$DEST"
 LOCK=$DEST/.wand-install.lock
@@ -74,7 +132,12 @@ if [ -e "$DEST/Wand.app" ]; then
     open "$DEST/Wand.app"
     exit 0
   fi
-  if pgrep -f "$DEST/Wand.app/Contents/MacOS/" >/dev/null; then fail 'Quit Wand before updating. No App or Core process was stopped.'; fi
+  if pgrep -f "$DEST/Wand.app/Contents/MacOS/" >/dev/null; then
+    # Quit it the normal way (terminal sessions live in the Core, not the App) and reopen it below.
+    osascript -e 'quit app id "dev.wandapp.macos"' >/dev/null 2>&1 || true
+    for _ in $(seq 1 20); do pgrep -f "$DEST/Wand.app/Contents/MacOS/" >/dev/null || break; sleep 0.5; done
+    if pgrep -f "$DEST/Wand.app/Contents/MacOS/" >/dev/null; then fail 'Wand did not quit; quit it and run this again. The Core is already up to date.'; fi
+  fi
   BACKUP=$DEST/Wand.previous.$(date +%Y%m%d%H%M%S).app
   [ ! -e "$BACKUP" ] || fail 'A backup with this timestamp already exists; retry shortly.'
   mv "$DEST/Wand.app" "$BACKUP"
