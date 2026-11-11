@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="一条命令安装 Wand：Mac 上安装 App 与服务，Linux 上安装服务。连接本机与远程电脑上的终端。"
+      content="一条命令安装 Wand II：Mac 上安装 App 与服务，Linux 上安装服务。连接本机与远程电脑上的终端。"
     />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111113" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
-    <title>Wand</title>
+    <title>Wand II</title>
     <link rel="icon" href="./assets/brand-mark.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
     <script type="module" src="./main.js"></script>
@@ -18,8 +18,8 @@
   <body>
     <a class="skip" href="#main">跳到正文</a>
     <header class="site-header wrap">
-      <a class="brand" href="./" aria-label="Wand 首页"
-        ><span class="mark" aria-hidden="true"></span><span>Wand</span></a
+      <a class="brand" href="./" aria-label="Wand II 首页"
+        ><span class="mark" aria-hidden="true"></span><span>Wand II</span></a
       >
       <nav aria-label="主导航">
         <a href="#guide">说明</a
@@ -32,8 +32,15 @@
     <main id="main">
       <section class="hero wrap" aria-labelledby="hero-title">
         <span class="mark hero-mark" aria-hidden="true"></span>
-        <h1 id="hero-title">Wand</h1>
+        <h1 id="hero-title">Wand II</h1>
         <p class="lead">连接本机或远程电脑，继续你的终端工作。</p>
+
+        <ul class="highlights">
+          <li><a href="#e2e"><strong>端到端加密</strong></a><span>Noise 协议，不依赖证书</span></li>
+          <li><strong>终端常驻</strong><span>关掉窗口、升级服务都不中断</span></li>
+          <li><strong>多台主机</strong><span>本机与远程电脑在同一处</span></li>
+          <li><strong>原生 Mac App</strong><span>SwiftUI 绘制，不是网页套壳</span></li>
+        </ul>
 
         <div class="install" id="install" data-channel="stable">
           <div class="install-bar">
@@ -67,8 +74,6 @@
               href="https://github.com/wandapp/app/releases/latest/download/Wand-macOS-arm64.dmg"
               ><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-4.5-4.5L12 15l4.5-4.5M5 19h14" /></svg>下载 macOS 版</a
             ><span>macOS 13 或更高版本 · Apple Silicon</span
-            ><a class="secure" href="#e2e"
-              ><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2.5" /><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" /></svg>端到端加密</a
             >
           </p>
         </div>
@@ -76,50 +81,18 @@
 
       <figure class="showcase">
         <div class="stage wrap">
-          <div class="app" aria-hidden="true">
-            <div class="app-titlebar">
-              <span class="lights"><i></i><i></i><i></i></span>
-              <span class="app-title">Wand</span>
-            </div>
-            <div class="app-body">
-              <aside class="app-side">
-                <div class="side-group">
-                  <div class="side-label">主机</div>
-                  <div class="side-row"><span class="dot on"></span>本机</div>
-                  <div class="side-row"><span class="dot on"></span>build-server</div>
-                </div>
-                <div class="side-group">
-                  <div class="side-label">工作区</div>
-                  <div class="side-row folder">
-                    <svg viewBox="0 0 20 20"><path d="M2.5 5.5h5l1.5 2h8.5v8.5h-15z" /></svg>my-project
-                  </div>
-                  <div class="side-row session active">开发</div>
-                  <div class="side-row session">测试</div>
-                  <div class="side-row folder">
-                    <svg viewBox="0 0 20 20"><path d="M2.5 5.5h5l1.5 2h8.5v8.5h-15z" /></svg>notes
-                  </div>
-                </div>
-              </aside>
-              <div class="app-main">
-                <div class="app-tabs">
-                  <span class="tab active">开发</span><span class="tab">测试</span>
-                  <span class="app-state"><span class="dot on"></span>build-server</span>
-                </div>
-                <div class="term">
-                  <p><span class="t-path">~/my-project</span> <span class="t-dim">main</span></p>
-                  <p><span class="t-prompt">❯</span> npm test</p>
-                  <p class="t-dim">&gt; vitest run</p>
-                  <p><span class="t-ok">✓</span> src/app.test.ts <span class="t-dim">(12)</span></p>
-                  <p><span class="t-ok">✓</span> src/sync.test.ts <span class="t-dim">(31)</span></p>
-                  <p class="t-gap"><span class="t-dim">Tests</span> <span class="t-ok">43 passed</span></p>
-                  <p class="t-gap"><span class="t-path">~/my-project</span> <span class="t-dim">main</span></p>
-                  <p><span class="t-prompt">❯</span> <span class="cursor"></span></p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <picture>
+            <source srcset="./assets/screen-dark.webp" media="(prefers-color-scheme: dark)" />
+            <img
+              class="shot"
+              src="./assets/screen-light.webp"
+              width="2560"
+              height="1440"
+              alt="Wand II 网页端：左侧是工作区与会话列表，右侧终端里运行着 git log 和 npm test"
+            />
+          </picture>
         </div>
-        <figcaption class="wrap">界面示意</figcaption>
+        <figcaption class="wrap">网页端</figcaption>
       </figure>
 
       <section class="guide wrap" id="guide" aria-labelledby="guide-title">
@@ -160,7 +133,7 @@
     </main>
 
     <footer class="site-footer wrap">
-      <a class="brand small" href="./"><span class="mark" aria-hidden="true"></span><span>Wand</span></a>
+      <a class="brand small" href="./"><span class="mark" aria-hidden="true"></span><span>Wand II</span></a>
       <a href="https://github.com/wandapp"
         >GitHub<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5" /></svg></a
       >
