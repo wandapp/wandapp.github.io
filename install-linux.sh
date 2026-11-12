@@ -4,6 +4,9 @@
 # the bundle. This script therefore relies on HTTPS plus the sha256 and size in the feed; later
 # updates are verified by the installed updater against the pinned key.
 # --beta installs the newest build, stable or Beta, and keeps the Core on the Beta channel; without it, stable.
+# Either way the update source becomes the official feed (a host this one followed is forgotten), and the run ends
+# only when every module answers on the new build: the gateway and web client by restarting the gateway, the
+# terminal service by restarting it too (running terminals are interrupted and restored in their directories).
 # Environment: WAND_PORT (default: the existing install's port, else 3210), WAND_SERVICE_USER (default: the invoking user).
 # Tests only: WAND_MANIFEST_URL overrides the feed (file:// is accepted only through it),
 # WAND_PLATFORM picks the artifact, WAND_PRINT_PLAN=1 prints the resolved plan and exits.
@@ -123,9 +126,31 @@ fi
 set -- --prefix /opt/wand-core
 [ -z "$USER_NAME" ] || set -- "$@" --user "$USER_NAME"
 [ -z "$PORT" ] || set -- "$@" --port "$PORT"
+FULL=0
+grep -q -- '--restart-terminal)' "$BUNDLE/install.sh" && { FULL=1; set -- "$@" --restart-terminal; }
 # Piped installs (curl | sh) have no terminal on stdin; the first-account prompt reads the controlling terminal.
 if [ ! -t 0 ] && ( : </dev/tty ) 2>/dev/null; then sh "$BUNDLE/install.sh" "$@" </dev/tty
 else sh "$BUNDLE/install.sh" "$@"; fi
 # The channel later updates follow; the updater runs as the service user, which owns state/.
 printf '%s' "$CHANNEL" > /opt/wand-core/state/channel
 [ -z "$USER_NAME" ] || chown "$USER_NAME": /opt/wand-core/state/channel
+rm -f /opt/wand-core/state/peer
+
+# Every module on the new build: the gateway answers on it and the terminal service is no longer behind
+# (the new gateway restarts it as soon as it is up and drops the record once it has).
+VERSION=$(tr -d ' \r\n' < "$BUNDLE/VERSION")
+BUILD=$(json_field "$(tr -d '\n\r' < "$BUNDLE/build.json" 2>/dev/null)" build number)
+LISTEN=${PORT:-3210}
+RECORD=/opt/wand-core/state/restart-terminal
+on_build() {
+  hello=$(curl -fsS -m 2 "http://127.0.0.1:$LISTEN/v1/hello" 2>/dev/null) || return 1
+  [ "$(json_field "$hello" version string)" = "$VERSION" ] && [ "$(json_field "$hello" build number)" = "${BUILD:-0}" ] \
+    && ! printf '%s' "$hello" | grep -q '"restartPending"[[:space:]]*:[[:space:]]*true' && { [ "$FULL" = 0 ] || [ ! -e "$RECORD" ]; }
+}
+UP=0
+for _ in $(seq 1 120); do
+  if on_build; then UP=1; break; fi
+  sleep 1
+done
+[ "$UP" = 1 ] || fail "Wand Core $VERSION was installed but did not come up completely on port $LISTEN within 2 minutes; see journalctl -u wand-core-gatewayd -u wand-core-sessiond."
+printf 'Wand Core %s (%s) is running on port %s, terminal service included.\n' "$VERSION" "${BUILD:-0}" "$LISTEN"

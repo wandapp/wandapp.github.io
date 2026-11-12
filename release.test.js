@@ -65,9 +65,18 @@ test("the Beta channel runs the same installer with --beta and offers the Beta d
 
 test("every installer accepts --beta and passes it on", async () => {
   assert.match(await read("./install.sh"), /sh "\$script" "\$@"/);
-  for (const file of ["./install-macos.sh", "./install-linux.sh"]) {
+  for (const [file, feed] of [["./install-macos.sh", /app\/releases\/download\/beta\/release\.json/], ["./install-linux.sh", /core\/releases\/download\/beta\/manifest\.json/]]) {
     const text = await read(file);
     assert.match(text, /--beta\) CHANNEL=beta/);
-    assert.match(text, /releases\/download\/beta\/manifest\.json/);
+    assert.match(text, feed);
+  }
+});
+
+test("an installer run ends with every module on the new build, terminal service included", async () => {
+  for (const file of ["./install-macos.sh", "./install-linux.sh"]) {
+    const text = await read(file);
+    assert.match(text, /--restart-terminal/);
+    assert.match(text, /restartPending/);
+    assert.match(text, /state\/peer/);
   }
 });
