@@ -1,12 +1,12 @@
 #!/bin/sh
-# Install Wand Core (sessiond + gatewayd + updater) as systemd services under /opt/wand-core.
+# Install Wand Core (sessiond + agentd + gatewayd + updater) as systemd services under /opt/wand-core.
 # The signed update feed cannot be verified before the first install: the trust key ships inside
 # the bundle. This script therefore relies on HTTPS plus the sha256 and size in the feed; later
 # updates are verified by the installed updater against the pinned key.
 # --beta installs the newest build, stable or Beta, and keeps the Core on the Beta channel; without it, stable.
 # Either way the update source becomes the official feed (a host this one followed is forgotten), and the run ends
 # only when every module answers on the new build: the gateway and web client by restarting the gateway, the
-# terminal service by restarting it too (running terminals are interrupted and restored in their directories).
+# terminal and conversation services by restarting them too (executions are interrupted; conversation history is kept).
 # Environment: WAND_PORT (default: the existing install's port, else 3210), WAND_SERVICE_USER (default: the invoking user).
 # Tests only: WAND_MANIFEST_URL overrides the feed (file:// is accepted only through it),
 # WAND_PLATFORM picks the artifact, WAND_PRINT_PLAN=1 prints the resolved plan and exits.
@@ -25,7 +25,12 @@ RELEASE_PREFIX=https://github.com/wandapp/core/releases/download/v
 
 # json_field FLAT_JSON KEY KIND -> value of the first KEY (KIND: string|number)
 json_field() {
-  if [ "$3" = number ]; then
+  if [ "$3" = first_string ]; then
+    # Durable restart records serialize their status before per-service result statuses.
+    printf '%s' "$1" | awk -v field="$2" 'match($0, "\"" field "\"[[:space:]]*:[[:space:]]*\"[^\"]*\"") { text = substr($0, RSTART, RLENGTH); sub(/^[^:]*:[[:space:]]*"/, "", text); sub(/"$/, "", text); print text; exit }'
+  elif [ "$3" = string_boolean ]; then
+    printf '%s' "$1" | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\\([a-z][a-z]*\\).*/\\1/p"
+  elif [ "$3" = number ]; then
     printf '%s' "$1" | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\\([0-9][0-9]*\\).*/\\1/p"
   else
     printf '%s' "$1" | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p"
@@ -126,8 +131,17 @@ fi
 set -- --prefix /opt/wand-core
 [ -z "$USER_NAME" ] || set -- "$@" --user "$USER_NAME"
 [ -z "$PORT" ] || set -- "$@" --port "$PORT"
-FULL=0
-grep -q -- '--restart-terminal)' "$BUNDLE/install.sh" && { FULL=1; set -- "$@" --restart-terminal; }
+RESTART_SCOPE=none
+RECORD=/opt/wand-core/state/restart-terminal
+if grep -q -- '--restart-services)' "$BUNDLE/install.sh"; then
+  RESTART_SCOPE=services
+  RECORD=/opt/wand-core/state/restart-services
+  set -- "$@" --restart-services
+elif grep -q -- '--restart-terminal)' "$BUNDLE/install.sh"; then
+  RESTART_SCOPE=terminal
+  set -- "$@" --restart-terminal
+fi
+printf '%s\n' 'Updating services interrupts active executions; conversation history is kept.'
 # Piped installs (curl | sh) have no terminal on stdin; the first-account prompt reads the controlling terminal.
 if [ ! -t 0 ] && ( : </dev/tty ) 2>/dev/null; then sh "$BUNDLE/install.sh" "$@" </dev/tty
 else sh "$BUNDLE/install.sh" "$@"; fi
@@ -141,16 +155,24 @@ rm -f /opt/wand-core/state/peer
 VERSION=$(tr -d ' \r\n' < "$BUNDLE/VERSION")
 BUILD=$(json_field "$(tr -d '\n\r' < "$BUNDLE/build.json" 2>/dev/null)" build number)
 LISTEN=${PORT:-3210}
-RECORD=/opt/wand-core/state/restart-terminal
 on_build() {
   hello=$(curl -fsS -m 2 "http://127.0.0.1:$LISTEN/v1/hello" 2>/dev/null) || return 1
   [ "$(json_field "$hello" version string)" = "$VERSION" ] && [ "$(json_field "$hello" build number)" = "${BUILD:-0}" ] \
-    && ! printf '%s' "$hello" | grep -q '"restartPending"[[:space:]]*:[[:space:]]*true' && { [ "$FULL" = 0 ] || [ ! -e "$RECORD" ]; }
+    && [ "$(json_field "$hello" restartPending string_boolean)" = false ] \
+    && { [ "$RESTART_SCOPE" != services ] || [ "$(json_field "$hello" agentRestartPending string_boolean)" = false ]; } \
+    && { [ "$RESTART_SCOPE" = none ] || [ ! -e "$RECORD" ]; }
 }
 UP=0
 for _ in $(seq 1 120); do
+  if [ "$RESTART_SCOPE" = services ] && [ -f "$RECORD" ] && [ "$(json_field "$(tr -d '\n\r' < "$RECORD")" status first_string)" = failed ]; then
+    fail "The confirmed terminal/conversation service restart failed; see journalctl -u wand-core-gatewayd -u wand-core-sessiond -u wand-core-agentd."
+  fi
   if on_build; then UP=1; break; fi
   sleep 1
 done
-[ "$UP" = 1 ] || fail "Wand Core $VERSION was installed but did not come up completely on port $LISTEN within 2 minutes; see journalctl -u wand-core-gatewayd -u wand-core-sessiond."
-printf 'Wand Core %s (%s) is running on port %s, terminal service included.\n' "$VERSION" "${BUILD:-0}" "$LISTEN"
+[ "$UP" = 1 ] || fail "Wand Core $VERSION was installed but did not come up completely on port $LISTEN within 2 minutes; see journalctl -u wand-core-gatewayd -u wand-core-sessiond -u wand-core-agentd."
+if [ "$RESTART_SCOPE" = services ]; then
+  printf 'Wand Core %s (%s) is running on port %s, terminal and conversation services included.\n' "$VERSION" "${BUILD:-0}" "$LISTEN"
+else
+  printf 'Wand Core %s (%s) is running on port %s; this older package does not verify conversation service updates.\n' "$VERSION" "${BUILD:-0}" "$LISTEN"
+fi

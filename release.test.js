@@ -72,11 +72,14 @@ test("every installer accepts --beta and passes it on", async () => {
   }
 });
 
-test("an installer run ends with every module on the new build, terminal service included", async () => {
+test("installers wait for both services and retain the terminal-only legacy scope", async () => {
   for (const file of ["./install-macos.sh", "./install-linux.sh"]) {
     const text = await read(file);
     assert.match(text, /--restart-terminal/);
+    assert.match(text, /--restart-services/);
     assert.match(text, /restartPending/);
+    assert.match(text, /agentRestartPending/);
+    assert.match(text, /state\/restart-services/);
     assert.match(text, /state\/peer/);
   }
 });

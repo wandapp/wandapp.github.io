@@ -43,3 +43,8 @@ Ego Browser TaskSpace 3：1440×1000 和 390×844 实际布局无横向溢出；
 ## 2026-11-09 — 正式版 0.1.5 (17)
 
 正式入口与安装脚本更新到 0.1.5 (17)，Beta 继续为 0.1.4 (16)。新正式版已包含更新通道开关及登录项/后台项授权复用修复，下载说明不再将开关限定为 Beta 客户端。npm check、5 项测试、build 通过；DMG Developer ID、Apple 公证、票据与 Gatekeeper 通过。真实浏览器从公开 Release 下载取得 SHA-256 d2757ccc577b11b59b8cb8181717db94d73a8b3454ab83183fc3314cf07c6180，并通过生产安装器的临时目录替换测试。公网清单回读与下载链路的最终结果见根 VERIFICATION.md。
+
+
+## 2026-11-15 agentd 安装更新完成条件
+
+本地check、11项测试和静态构建通过。Mac/Linux脚本优先使用--restart-services，等待精确gateway目标、两项pending=false和持久记录完成；失败不算成功，旧包不宣称agent换新。Mac支持当前Helper目录并完整复制签名，保留被引用的旧App。无真实Linux宿主安装或远端发布；本轮官网源码未push，未更新主仓库submodule指针。实际Core/App安装验收与公开CI gate见主仓库VERIFICATION.md。

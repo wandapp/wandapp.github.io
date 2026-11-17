@@ -1,6 +1,6 @@
 #!/bin/sh
 # Bring this Mac to the latest stable Wand, whatever is installed now. Wand on a Mac is one thing: the signed App,
-# and the Core it carries (gateway, terminal service, web client). This installs the App from its release feed, then
+# and the Core it carries (gateway, terminal service, conversation service, web client). This installs the App from its release feed, then
 # runs the App's own Core from inside it, and ends only when every module answers on that build:
 # the gateway and the web client by restarting the gateway, the terminal service by restarting it too (running
 # terminals are interrupted and restored in their directories; agents resume their conversations).
@@ -135,9 +135,15 @@ else
     [ ! -e "$BACKUP" ] || fail 'A backup with this timestamp already exists; retry shortly.'
     mv "$APP_PATH" "$BACKUP"
     if ! mv "$APP" "$APP_PATH"; then mv "$BACKUP" "$APP_PATH"; fail 'Installation failed; previous App restored.'; fi
-    # Keep only the newest backup, as the App's own updater does.
-    last=
-    for old in "$DEST"/Wand.previous.*.app; do [ -e "$old" ] || continue; [ -z "$last" ] || rm -rf "$last"; last=$old; done
+    # Keep the replacement and any bundle still hosting a daemon. Uncertain references also stay.
+    for old in "$DEST"/Wand.previous.*.app; do
+      [ -d "$old" ] && [ ! -L "$old" ] && [ "$old" != "$BACKUP" ] || continue
+      if /usr/sbin/lsof -t +w +D "$old" > "$TEMP/references" 2>&1; then continue
+      else
+        references_status=$?
+        [ "$references_status" != 1 ] || [ -s "$TEMP/references" ] || rm -rf "$old"
+      fi
+    done
   else
     mv "$APP" "$APP_PATH"
   fi
@@ -153,23 +159,40 @@ defaults delete dev.wandapp.macos wand.appSource >/dev/null 2>&1 || true
 
 # The Core: the one this App carries, with every module on it.
 BUNDLE=$APP_PATH/Contents/Resources/wand-core
-BIN=$APP_PATH/Contents/Helpers/wand-core/bin
+if [ -d "$APP_PATH/Contents/Helpers/Wand Helper.app" ]; then
+  BIN="$APP_PATH/Contents/Helpers/Wand Helper.app/Contents/MacOS"
+else
+  BIN=$APP_PATH/Contents/Helpers/wand-core/bin
+fi
 [ -f "$BUNDLE/install.sh" ] && [ -x "$BIN/gatewayd" ] || fail "$APP_PATH carries no Core; nothing else was changed."
 CORE_VERSION=$(tr -d ' \r\n' < "$BUNDLE/VERSION")
 CORE_BUILD=$(json build "$BUNDLE/build.json") || CORE_BUILD=0
 CORE_DATA=$(json data "$CORE_HOME/install.json") || CORE_DATA="$HOME/.wand-core"
 PORT=$(json port "$CORE_DATA/network.json") || PORT=3210
 case "$PORT" in ''|*[!0-9]*) PORT=3210 ;; esac
+RESTART_SCOPE=none
 RECORD=$CORE_HOME/state/restart-terminal
+if grep -q -- '--restart-services)' "$BUNDLE/install.sh"; then
+  RESTART_SCOPE=services
+  RECORD=$CORE_HOME/state/restart-services
+elif grep -q -- '--restart-terminal)' "$BUNDLE/install.sh"; then
+  RESTART_SCOPE=terminal
+fi
 hello() { curl -fsS -m 2 "http://127.0.0.1:$PORT/v1/hello" -o "$TEMP/hello.json" 2>/dev/null; }
-# on_build: the gateway answers on the App's Core build, and the terminal service is not behind it.
+# Both independent services must reach the confirmed build and finish the durable operation.
 on_build() {
   hello && [ "$(json version "$TEMP/hello.json")" = "$CORE_VERSION" ] && [ "$(json build "$TEMP/hello.json")" = "$CORE_BUILD" ] \
-    && [ "$(json restartPending "$TEMP/hello.json")" != true ]
+    && [ "$(json restartPending "$TEMP/hello.json")" = false ] \
+    && { [ "$RESTART_SCOPE" != services ] || [ "$(json agentRestartPending "$TEMP/hello.json")" = false ]; } \
+    && { [ "$RESTART_SCOPE" = none ] || [ ! -e "$RECORD" ]; }
 }
 LINKED=$(json bin "$CORE_HOME/install.json") || LINKED=
 if [ "$IN_PLACE" = 1 ] && [ "$LINKED" = "$(cd "$BIN" && pwd -P)" ] && on_build && [ ! -e "$RECORD" ]; then
-  printf 'Wand Core %s (%s) is running from the App, terminal service included.\n' "$CORE_VERSION" "$CORE_BUILD"
+  if [ "$RESTART_SCOPE" = services ]; then
+    printf 'Wand Core %s (%s) is running from the App, terminal and conversation services included.\n' "$CORE_VERSION" "$CORE_BUILD"
+  else
+    printf 'Wand Core %s (%s) is running from the App; this older package does not verify conversation service updates.\n' "$CORE_VERSION" "$CORE_BUILD"
+  fi
 else
   set -- --port "$PORT" --instance core
   if [ "$IN_PLACE" = 1 ]; then
@@ -177,29 +200,37 @@ else
     set -- "$@" --bin "$BIN" --link --updates external --associate dev.wandapp.macos
   else
     # A copy outside an Applications folder installs a copy of its Core, without the download quarantine.
-    mkdir "$TEMP/core" && cp -R "$BUNDLE" "$TEMP/core/wand-core" && cp -R "$BIN" "$TEMP/core/bin"
+    mkdir "$TEMP/core" && cp -R "$BUNDLE" "$TEMP/core/wand-core"
+    case "$BIN" in
+      */Wand\ Helper.app/Contents/MacOS)
+        cp -R "${BIN%/Contents/MacOS}" "$TEMP/core/Wand Helper.app"
+        COPY_BIN="$TEMP/core/Wand Helper.app/Contents/MacOS" ;;
+      *) cp -R "$BIN" "$TEMP/core/bin"; COPY_BIN="$TEMP/core/bin" ;;
+    esac
     xattr -dr com.apple.quarantine "$TEMP/core" 2>/dev/null || true
     SOURCE=$TEMP/core/wand-core
-    set -- "$@" --bin "$TEMP/core/bin"
+    set -- "$@" --bin "$COPY_BIN"
   fi
-  FULL=0
-  grep -q -- '--restart-terminal)' "$SOURCE/install.sh" && { FULL=1; set -- "$@" --restart-terminal; }
-  printf 'Updating Wand Core to %s (%s) on port %s, terminal service included...\n' "$CORE_VERSION" "$CORE_BUILD" "$PORT"
+  case "$RESTART_SCOPE" in
+    services) set -- "$@" --restart-services ;;
+    terminal) set -- "$@" --restart-terminal ;;
+  esac
+  printf 'Updating Wand Core to %s (%s) on port %s, terminal and conversation services included (active executions will be interrupted; history is kept)...\n' "$CORE_VERSION" "$CORE_BUILD" "$PORT"
   sh "$SOURCE/install.sh" "$@" </dev/null || fail "Wand Core installation failed; see $CORE_DATA/gatewayd.log."
   # The new gateway restarts the terminal service as soon as it is up and drops the record once it has.
   UP=0
   for _ in $(seq 1 120); do
-    if on_build && { [ "$FULL" = 0 ] || [ ! -e "$RECORD" ]; }; then UP=1; break; fi
+    if [ "$RESTART_SCOPE" = services ] && [ -f "$RECORD" ] && [ "$(json status "$RECORD")" = failed ]; then
+      fail "The confirmed terminal/conversation service restart failed; see $CORE_DATA/gatewayd.log, sessiond.log and agentd.log."
+    fi
+    if on_build && { [ "$RESTART_SCOPE" = none ] || [ ! -e "$RECORD" ]; }; then UP=1; break; fi
     sleep 1
   done
-  if [ "$UP" = 0 ]; then
-    if hello && [ "$(json version "$TEMP/hello.json")" = "$CORE_VERSION" ] && [ "$FULL" = 0 ]; then
-      printf 'Wand Core %s is running; its terminal service moves over at its next restart (this App predates restarting it here).\n' "$CORE_VERSION"
-    else
-      fail "Wand Core $CORE_VERSION ($CORE_BUILD) was installed but did not come up completely on port $PORT within 2 minutes; see $CORE_DATA/gatewayd.log and $CORE_DATA/sessiond.log."
-    fi
+  [ "$UP" = 1 ] || fail "Wand Core $CORE_VERSION ($CORE_BUILD) did not complete its service update on port $PORT within 2 minutes; see $CORE_DATA/gatewayd.log, sessiond.log and agentd.log."
+  if [ "$RESTART_SCOPE" = services ]; then
+    printf 'Wand Core %s (%s) is running, terminal and conversation services included.\n' "$CORE_VERSION" "$CORE_BUILD"
   else
-    printf 'Wand Core %s (%s) is running, terminal service included; running terminals were restored.\n' "$CORE_VERSION" "$CORE_BUILD"
+    printf 'Wand Core %s (%s) is running; this older package does not verify conversation service updates.\n' "$CORE_VERSION" "$CORE_BUILD"
   fi
 fi
 
